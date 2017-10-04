@@ -1,0 +1,16 @@
+/target/
+.settings
+.project
+.classpath
+gen
+target
+bin
+project.properties
+tmp
+*.zip
+styles.css
+pom.xml.versionsBackup
+pom.xml.releaseBackup
+release.properties
+*.jar
+*.*~

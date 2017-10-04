@@ -1,46 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.biit.liferay</groupId>
-	<artifactId>liferay-autoconfigurator</artifactId>
+	<artifactId>liferay-autoconfigurator-core</artifactId>
 	<packaging>jar</packaging>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>Liferay Basic Configuration Creation</name>
-	<description>Add default users, organizations, roles and articles to a newly installed Liferay</description>
+	<name>Liferay Basic Configuration Creation (Core)</name>
 
-	<distributionManagement>
-		<repository>
-			<id>central</id>
-			<name>biit-releases</name>
-			<url>https://git.biit-solutions.com:8443/artifactory/ext-release-local</url>
-		</repository>
-		<snapshotRepository>
-			<id>snapshots</id>
-			<name>libs-snapshot</name>
-			<url>https://git.biit-solutions.com:8443/artifactory/libs-snapshot</url>
-		</snapshotRepository>
-	</distributionManagement>
-
-	<scm>
-		<connection>scm:git:git.biit-solutions.com:LiferayAutconfig.git</connection>
-		<developerConnection>scm:git:git.biit-solutions.com:LiferayAutconfig.git</developerConnection>
-		<tag>liferay-autoconfigurator</tag>
-	</scm>
-
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<java.jdk.version>1.6</java.jdk.version>
-		<plugin.compiler.version>2.3.2</plugin.compiler.version>
-		<plugin.exec.version>1.2.1</plugin.exec.version>
-		<org.testng.version>6.8</org.testng.version>
-		<surefire.version>2.16</surefire.version>
-		<maven-resources-plugin.version>2.7</maven-resources-plugin.version>
-		<maven-release-plugin.version>2.5.1</maven-release-plugin.version>
-		<maven-scm-provider-gitexe.version>1.9.2</maven-scm-provider-gitexe.version>
-		<project.scm.id>git</project.scm.id>
-		<!-- BiiT dependencies -->
-		<biit-liferay-common-utils.version>[0.7,0.8)</biit-liferay-common-utils.version>
-	</properties>
+	<parent>
+		<groupId>com.biit</groupId>
+		<artifactId>liferay-autoconfigurator</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
 
 	<build>
 		<plugins>

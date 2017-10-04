@@ -19,4 +19,5 @@ public class UserFactoryTests {
 		users = UserFactory.getInstance().getUsers();
 		Assert.assertEquals(users.size(), USERS_IN_FOLDER);
 	}
+
 }

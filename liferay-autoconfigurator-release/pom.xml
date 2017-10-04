@@ -99,7 +99,7 @@
 						<configuration>
 							<target>
 								<move
-									file="target/${project.parent.artifactId}-${project.parent.version}-jar-with-dependencies.jar"
+									file="target/${project.parent.artifactId}-${project.parent.version}.jar"
 									tofile="../${project.parent.artifactId}${jar.sufix}-${jar.version}.jar" />
 							</target>
 						</configuration>

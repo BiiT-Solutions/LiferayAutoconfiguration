@@ -61,8 +61,8 @@
 		<!-- Basic Liferay Access -->
 		<dependency>
 			<groupId>com.biit.liferay</groupId>
-			<artifactId>liferay-service-common</artifactId>
-			<version>${biit-liferay-common-utils.version}</version>
+			<artifactId>liferay-authentication-client</artifactId>
+			<version>${liferay-authentication-client.version}</version>
 		</dependency>
 		<!-- Testing -->
 		<dependency>

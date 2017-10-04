@@ -34,7 +34,10 @@ public class UserFactory extends JsonFactory<User> {
 
 	protected List<File> getUsersDefinition() {
 		File[] resources = FileReader.getResources(USER_RESOURCES);
-		return Arrays.asList(resources);
+		if (resources != null) {
+			return Arrays.asList(resources);
+		}
+		return new ArrayList<>();
 	}
 
 	public List<User> getUsers() {

@@ -52,6 +52,16 @@
 
 	<build>
 		<finalName>${project.parent.artifactId}-${project.parent.version}</finalName>
+		<resources>
+			<resource>
+				<directory>${resource.folder}</directory>
+				<filtering>false</filtering>
+				<!-- JSP files are not in resource folder -->
+				<excludes>
+					<exclude>**/*.jsp</exclude>
+				</excludes>
+			</resource>
+		</resources>
 		<plugins>
 			<!-- Include dependencies inside the JAR -->
 			<plugin>

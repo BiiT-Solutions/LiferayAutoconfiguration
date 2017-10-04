@@ -1,0 +1,22 @@
+package com.biit.liferay.auto;
+
+import java.util.List;
+
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import com.liferay.portal.model.User;
+
+@Test(groups = "userFactory")
+public class UserFactoryTests {
+	private final int USERS_IN_FOLDER = 1;
+
+	private List<User> users;
+
+	@Test
+	public void getUsersFromResources() {
+		Assert.assertEquals(UserFactory.getInstance().getUsersDefinition().size(), USERS_IN_FOLDER);
+		users = UserFactory.getInstance().getUsers();
+		Assert.assertEquals(users.size(), USERS_IN_FOLDER);
+	}
+}

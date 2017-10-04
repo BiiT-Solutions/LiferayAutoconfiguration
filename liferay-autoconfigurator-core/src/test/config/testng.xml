@@ -1,11 +1,14 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite thread-count="1" verbose="1" name="WebServiceSuite">
-	<test name="LiferayAutoconfigurator" enabled="true" preserve-order="true">
+	<test name="LiferayAutoconfigurator" enabled="true"
+		preserve-order="true">
 		<groups>
 			<run>
+				<include name="userFactory" />
 			</run>
 		</groups>
 		<classes>
+			<class name="com.biit.liferay.auto.UserFactoryTests" />
 		</classes>
 	</test>
 </suite>

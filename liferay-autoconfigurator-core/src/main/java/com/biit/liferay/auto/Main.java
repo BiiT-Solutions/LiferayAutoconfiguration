@@ -40,6 +40,7 @@ public class Main {
 		companyService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, DEFAULT_LIFERAY_ADMIN_PASSWORD);
 		try {
 			company = (Company) companyService.getCompanyByVirtualHost(getCompany(args));
+			LiferayClientLogger.info(Main.class.getName(), "Company obtained '" + company + "'.");
 			// Company obtained, first connection to Liferay.
 			if (company != null) {
 				// Change password to default admin user.
@@ -93,6 +94,7 @@ public class Main {
 			}
 			user.setCompanyId(company.getCompanyId());
 			userService.addUser(company, user);
+			LiferayClientLogger.info(Main.class.getName(), "Added user '" + user.getEmailAddress() + "'.");
 		}
 		userService.disconnect();
 

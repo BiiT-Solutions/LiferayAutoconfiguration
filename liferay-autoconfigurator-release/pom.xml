@@ -97,7 +97,7 @@
 						<id>addSufix</id>
 						<configuration>
 							<target>
-								<move file="target/${project.parent.artifactId}-${project.parent.version}-jar-with-dependencies.jar" tofile="../${project.parent.artifactId}${jar.sufix}-${jar.version}.jar" />
+								<copy file="target/${project.parent.artifactId}-${project.parent.version}-jar-with-dependencies.jar" tofile="../${project.parent.artifactId}${jar.sufix}-${jar.version}.jar" />
 							</target>
 						</configuration>
 						<goals>

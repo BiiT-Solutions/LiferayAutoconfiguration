@@ -27,7 +27,7 @@
 	</dependencies>
 
 	<profiles>
-		<!-- Each profile change the resoure folder to read different drools rules -->
+		<!-- Each profile change the resource folder to read different liferay objects -->
 		<profile>
 			<id>test</id>
 			<activation>
@@ -93,11 +93,11 @@
 				<executions>
 					<execution>
 						<!-- Add sufix to JAR file -->
-						<phase>package</phase>
+						<phase>install</phase>
 						<id>addSufix</id>
 						<configuration>
 							<target>
-								<move file="target/${project.parent.artifactId}-${project.parent.version}.jar" tofile="../${project.parent.artifactId}${jar.sufix}-${jar.version}.jar" />
+								<move file="target/${project.parent.artifactId}-${project.parent.version}-jar-with-dependencies.jar" tofile="../${project.parent.artifactId}${jar.sufix}-${jar.version}.jar" />
 							</target>
 						</configuration>
 						<goals>

@@ -17,9 +17,9 @@ import com.liferay.portal.model.Company;
 import com.liferay.portal.model.User;
 
 public class Main {
+	private static final String DEFAULT_LIFERAY_VIRTUALHOST = "localhost";
 	private static final String DEFAULT_LIFERAY_ADMIN_USER = "test@liferay.com";
 	private static final String DEFAULT_LIFERAY_ADMIN_PASSWORD = "test";
-
 	private static final String DEFAULT_LIFERAY_PASSWORD = "asd123";
 
 	private static final int ARG_VIRTUALHOST = 0;
@@ -40,7 +40,7 @@ public class Main {
 		companyService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, DEFAULT_LIFERAY_ADMIN_PASSWORD);
 		try {
 			company = (Company) companyService.getCompanyByVirtualHost(getCompany(args));
-			LiferayClientLogger.info(Main.class.getName(), "Company obtained '" + company + "'.");
+			LiferayClientLogger.info(Main.class.getName(), "Company obtained '" + company.getHomeURL() + "'.");
 			// Company obtained, first connection to Liferay.
 			if (company != null) {
 				// Change password to default admin user.
@@ -56,7 +56,7 @@ public class Main {
 
 	private static String getCompany(String[] args) {
 		if (args.length <= ARG_VIRTUALHOST) {
-			return "localhost";
+			return DEFAULT_LIFERAY_VIRTUALHOST;
 		} else {
 			return args[ARG_VIRTUALHOST];
 		}

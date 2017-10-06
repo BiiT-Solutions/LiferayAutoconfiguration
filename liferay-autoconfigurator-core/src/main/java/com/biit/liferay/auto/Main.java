@@ -76,8 +76,10 @@ public class Main {
 				// Add roles.
 				Map<String, IRole<Long>> roles = storeRoles(getPassword(args));
 
-				// Add roles to organizations.
-				assignRolesToOrganizations(roles, organizations, getPassword(args));
+				// Add roles to organizations. Not needed or will inherited by
+				// all users.
+				// assignRolesToOrganizations(roles, organizations,
+				// getPassword(args));
 
 				// Add roles to users.
 				assignRolesToUsers(roles, users, organizations, getPassword(args));

@@ -10,7 +10,7 @@ import com.biit.liferay.access.PasswordService;
 import com.biit.liferay.access.UserService;
 import com.biit.liferay.access.exceptions.NotConnectedToWebServiceException;
 import com.biit.liferay.access.exceptions.WebServiceAccessError;
-import com.biit.liferay.log.LiferayClientLogger;
+import com.biit.liferay.auto.log.LiferayAutoconfiguratorLogger;
 import com.biit.usermanager.entity.IUser;
 import com.biit.usermanager.security.exceptions.AuthenticationRequired;
 import com.liferay.portal.model.Company;
@@ -37,10 +37,10 @@ public class Main {
 		// Access with default admin user to a service. if default password has
 		// been change, do nothing.
 		CompanyService companyService = new CompanyService();
-		companyService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, DEFAULT_LIFERAY_ADMIN_PASSWORD);
+		companyService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, getPassword(args));
 		try {
 			company = (Company) companyService.getCompanyByVirtualHost(getCompany(args));
-			LiferayClientLogger.info(Main.class.getName(), "Company obtained '" + company.getHomeURL() + "'.");
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Company obtained '" + company.getCompanyId() + "'.");
 			// Company obtained, first connection to Liferay.
 			if (company != null) {
 				// Change password to default admin user.
@@ -48,10 +48,14 @@ public class Main {
 
 				// Store new users.
 				storeUsers(getPassword(args));
+				
+				//Add organizations.
+				
 			}
 		} catch (NotConnectedToWebServiceException | IOException | AuthenticationRequired | WebServiceAccessError e) {
-			LiferayClientLogger.errorMessage(Main.class.getName(), e);
+			LiferayAutoconfiguratorLogger.errorMessage(Main.class.getName(), e);
 		}
+		System.exit(0);
 	}
 
 	private static String getCompany(String[] args) {
@@ -71,15 +75,21 @@ public class Main {
 	}
 
 	private static void updateDefaultPassword(String newPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
-			AuthenticationRequired, WebServiceAccessError {
+			WebServiceAccessError {
 		UserService userService = new UserService();
 		PasswordService passwordService = new PasswordService();
-		passwordService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, DEFAULT_LIFERAY_ADMIN_PASSWORD);
-		userService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, DEFAULT_LIFERAY_ADMIN_PASSWORD);
-		IUser<Long> defaultUser = userService.getUserByEmailAddress(company, DEFAULT_LIFERAY_ADMIN_USER);
-		defaultUser = passwordService.updatePassword(defaultUser, newPassword);
-		passwordService.disconnect();
-		userService.disconnect();
+		try {
+			passwordService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, DEFAULT_LIFERAY_ADMIN_PASSWORD);
+			userService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, DEFAULT_LIFERAY_ADMIN_PASSWORD);
+			IUser<Long> defaultUser = userService.getUserByEmailAddress(company, DEFAULT_LIFERAY_ADMIN_USER);
+			defaultUser = passwordService.updatePassword(defaultUser, newPassword);
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Default password changed.");
+		} catch (AuthenticationRequired ar) {
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Default password NOT changed.");
+		} finally {
+			passwordService.disconnect();
+			userService.disconnect();
+		}
 	}
 
 	private static void storeUsers(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
@@ -88,15 +98,25 @@ public class Main {
 		UserService userService = new UserService();
 		userService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		List<User> users = UserFactory.getInstance().getUsers();
+		LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Users to add '" + users.size() + "'.");
 		for (User user : users) {
 			if (user.getPassword() == null || user.getPassword().isEmpty()) {
 				user.setPassword(DEFAULT_LIFERAY_PASSWORD);
 			}
 			user.setCompanyId(company.getCompanyId());
-			userService.addUser(company, user);
-			LiferayClientLogger.info(Main.class.getName(), "Added user '" + user.getEmailAddress() + "'.");
+			try {
+				userService.addUser(company, user);
+				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added user '" + user.getEmailAddress() + "'.");
+			} catch (WebServiceAccessError dusne) {
+				if (dusne.getMessage().contains("com.liferay.portal.DuplicateUserScreenNameException")) {
+					LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists an user with screen name '" + user.getScreenName() + "'. ");
+				}
+			}
 		}
 		userService.disconnect();
-
+	}
+	
+	private static void storeOrganizations(String connectionPassword){
+		
 	}
 }

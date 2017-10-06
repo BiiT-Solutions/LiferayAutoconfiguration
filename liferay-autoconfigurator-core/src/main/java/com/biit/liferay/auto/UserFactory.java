@@ -2,9 +2,7 @@ package com.biit.liferay.auto;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.biit.liferay.log.LiferayClientLogger;
@@ -12,7 +10,7 @@ import com.biit.utils.file.FileReader;
 import com.liferay.portal.model.User;
 
 public class UserFactory extends JsonFactory<User> {
-	private final static String USER_RESOURCES = "users";
+	private final static String RESOURCE_FOLDER = "users";
 	private static UserFactory instance;
 
 	private static void createInstance() {
@@ -33,11 +31,7 @@ public class UserFactory extends JsonFactory<User> {
 	}
 
 	protected List<File> getUsersDefinition() {
-		File[] resources = FileReader.getResources(USER_RESOURCES);
-		if (resources != null) {
-			return Arrays.asList(resources);
-		}
-		return new ArrayList<>();
+		return FileReader.getResources(RESOURCE_FOLDER);
 	}
 
 	public List<User> getUsers() {
@@ -45,7 +39,7 @@ public class UserFactory extends JsonFactory<User> {
 		List<User> users = new ArrayList<>();
 		for (File file : usersDefinitions) {
 			try {
-				String userContent = FileReader.getResource(USER_RESOURCES + File.separator + file.getName(), Charset.defaultCharset());
+				String userContent = FileReader.readFile(file);
 				User user = decodeFromJson(userContent, User.class);
 				users.add(user);
 			} catch (IOException e) {

@@ -7,23 +7,23 @@ import java.util.List;
 
 import com.biit.liferay.log.LiferayClientLogger;
 import com.biit.utils.file.FileReader;
-import com.liferay.portal.model.User;
+import com.liferay.portal.model.Organization;
 
-public class UserFactory extends JsonFactory<User> {
-	private final static String RESOURCE_FOLDER = "users";
-	private static UserFactory instance;
+public class OrganizationFactory extends JsonFactory<Organization> {
+	private final static String RESOURCE_FOLDER = "organizations";
+	private static OrganizationFactory instance;
 
 	private static void createInstance() {
 		if (instance == null) {
-			synchronized (UserFactory.class) {
+			synchronized (OrganizationFactory.class) {
 				if (instance == null) {
-					instance = new UserFactory();
+					instance = new OrganizationFactory();
 				}
 			}
 		}
 	}
 
-	public static UserFactory getInstance() {
+	public static OrganizationFactory getInstance() {
 		if (instance == null) {
 			createInstance();
 		}
@@ -36,19 +36,19 @@ public class UserFactory extends JsonFactory<User> {
 	}
 
 	@Override
-	public List<User> getElements() {
+	public List<Organization> getElements() {
 		List<File> definitions = getDefinitions();
-		List<User> users = new ArrayList<>();
+		List<Organization> organizations = new ArrayList<>();
 		for (File file : definitions) {
 			try {
 				String fileContent = FileReader.readFile(file);
-				User user = decodeFromJson(fileContent, User.class);
-				users.add(user);
+				Organization user = decodeFromJson(fileContent, Organization.class);
+				organizations.add(user);
 			} catch (IOException e) {
 				LiferayClientLogger.errorMessage(this.getClass().getName(), e);
 			}
 		}
-		return users;
+		return organizations;
 	}
 
 }

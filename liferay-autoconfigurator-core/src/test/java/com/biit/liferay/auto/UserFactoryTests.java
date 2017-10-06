@@ -15,8 +15,8 @@ public class UserFactoryTests {
 
 	@Test
 	public void getUsersFromResources() {
-		Assert.assertEquals(UserFactory.getInstance().getUsersDefinition().size(), USERS_IN_FOLDER);
-		users = UserFactory.getInstance().getUsers();
+		Assert.assertEquals(UserFactory.getInstance().getDefinitions().size(), USERS_IN_FOLDER);
+		users = UserFactory.getInstance().getElements();
 		Assert.assertEquals(users.size(), USERS_IN_FOLDER);
 	}
 

@@ -1,0 +1,21 @@
+{
+	"user": "paul",
+	"roles": [
+		{
+			"role": "usmo_physiotherapist",
+			"organization": "Orbis Sport"
+		},
+		{
+			"role": "usmo_organization_administrator",
+			"organization": "Orbis Sport"
+		},
+		{
+			"role": "usmo_company_administrator",
+			"organization": "Orbis Sport"
+		},
+		{
+			"role": "usmo_administration",
+			"organization": null
+		}
+	]
+}

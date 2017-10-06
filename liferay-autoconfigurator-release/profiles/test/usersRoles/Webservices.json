@@ -1,0 +1,17 @@
+{
+	"user": "webservices",
+	"roles": [
+		{
+			"role": "orbeon-drools_web-service-user",
+			"organization": null
+		},
+		{
+			"role": "base-form-drools_web-service-user",
+			"organization": null
+		},
+		{
+			"role": "usmo_web-service-user",
+			"organization": null
+		}
+	]
+}

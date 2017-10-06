@@ -2,7 +2,9 @@ package com.biit.liferay.auto;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.apache.http.client.ClientProtocolException;
@@ -18,7 +20,10 @@ import com.biit.liferay.access.exceptions.WebServiceAccessError;
 import com.biit.liferay.auto.factories.OrganizationFactory;
 import com.biit.liferay.auto.factories.RoleFactory;
 import com.biit.liferay.auto.factories.UserFactory;
+import com.biit.liferay.auto.factories.UsersRolesFactory;
 import com.biit.liferay.auto.log.LiferayAutoconfiguratorLogger;
+import com.biit.liferay.auto.model.RoleSelection;
+import com.biit.liferay.auto.model.UserRole;
 import com.biit.usermanager.entity.IGroup;
 import com.biit.usermanager.entity.IRole;
 import com.biit.usermanager.entity.IUser;
@@ -60,21 +65,22 @@ public class Main {
 				updateDefaultPassword(getPassword(args));
 
 				// Store new users.
-				List<IUser<Long>> users = storeUsers(getPassword(args));
+				Map<String, IUser<Long>> users = storeUsers(getPassword(args));
 
 				// Add organizations.
-				List<IGroup<Long>> organizations = storeOrganizations(getPassword(args));
+				Map<String, IGroup<Long>> organizations = storeOrganizations(getPassword(args));
 
 				// Add users to organization.
 				assignUsersToOrganizations(users, organizations, getPassword(args));
 
 				// Add roles.
-				List<IRole<Long>> roles = storeRoles(getPassword(args));
+				Map<String, IRole<Long>> roles = storeRoles(getPassword(args));
 
 				// Add roles to organizations.
 				assignRolesToOrganizations(roles, organizations, getPassword(args));
-				
-				//Add roles to users.
+
+				// Add roles to users.
+				assignRolesToUsers(roles, users, organizations, getPassword(args));
 			}
 		} catch (NotConnectedToWebServiceException | IOException | AuthenticationRequired | WebServiceAccessError e) {
 			LiferayAutoconfiguratorLogger.errorMessage(Main.class.getName(), e);
@@ -116,14 +122,14 @@ public class Main {
 		}
 	}
 
-	private static List<IUser<Long>> storeUsers(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
-			AuthenticationRequired, WebServiceAccessError {
+	private static Map<String, IUser<Long>> storeUsers(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
+			IOException, AuthenticationRequired, WebServiceAccessError {
 		// Get users from resources profile
 		UserService userService = new UserService();
 		userService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		List<User> users = UserFactory.getInstance().getElements();
 		LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Users to add '" + users.size() + "'.");
-		List<IUser<Long>> usersAdded = new ArrayList<>();
+		Map<String, IUser<Long>> usersAdded = new HashMap<>();
 		try {
 			for (User user : users) {
 				if (user.getPassword() == null || user.getPassword().isEmpty()) {
@@ -133,11 +139,14 @@ public class Main {
 				try {
 					IUser<Long> userAdded = userService.addUser(company, user);
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added user '" + userAdded + "'.");
-					usersAdded.add(userAdded);
+					usersAdded.put(user.getUniqueName(), userAdded);
 				} catch (WebServiceAccessError dusne) {
 					if (dusne.getMessage().contains("com.liferay.portal.DuplicateUserScreenNameException")) {
 						LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists an user with screen name '" + user.getScreenName() + "'. ");
-						usersAdded.add(userService.getUserByEmailAddress(company, user.getEmailAddress()));
+						IUser<Long> existingUser = userService.getUserByEmailAddress(company, user.getEmailAddress());
+						if (existingUser != null) {
+							usersAdded.put(existingUser.getUniqueName(), existingUser);
+						}
 					}
 				}
 			}
@@ -147,26 +156,26 @@ public class Main {
 		return usersAdded;
 	}
 
-	private static List<IGroup<Long>> storeOrganizations(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
+	private static Map<String, IGroup<Long>> storeOrganizations(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
 			IOException, AuthenticationRequired, WebServiceAccessError {
 		OrganizationService organizationService = new OrganizationService();
 		organizationService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		List<Organization> organizations = OrganizationFactory.getInstance().getElements();
 		LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Organizations to add '" + organizations.size() + "'.");
-		List<IGroup<Long>> organizationsAdded = new ArrayList<>();
+		Map<String, IGroup<Long>> organizationsAdded = new HashMap<>();
 		try {
 			for (Organization organization : organizations) {
 				organization.setCompanyId(company.getCompanyId());
 				try {
 					IGroup<Long> organizationAdded = organizationService.addOrganization(company, organization);
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added organization '" + organizationAdded + "'.");
-					organizationsAdded.add(organizationAdded);
+					organizationsAdded.put(organization.getUniqueName(), organizationAdded);
 				} catch (DuplicatedLiferayElement dle) {
 					LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists an organization with name '" + organization + "'. ");
 					// get organization that already exists.
 					for (IGroup<Long> existingOrganization : organizationService.getOrganizations(company)) {
 						if (Objects.equals(existingOrganization.getUniqueName(), organization.getUniqueName())) {
-							organizationsAdded.add(existingOrganization);
+							organizationsAdded.put(existingOrganization.getUniqueName(), existingOrganization);
 						}
 					}
 				}
@@ -177,34 +186,37 @@ public class Main {
 		return organizationsAdded;
 	}
 
-	private static void assignUsersToOrganizations(List<IUser<Long>> users, List<IGroup<Long>> organizations, String connectionPassword)
+	private static void assignUsersToOrganizations(Map<String, IUser<Long>> users, Map<String, IGroup<Long>> organizations, String connectionPassword)
 			throws ClientProtocolException, IOException, NotConnectedToWebServiceException, AuthenticationRequired {
 		OrganizationService organizationService = new OrganizationService();
 		organizationService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
-		for (IGroup<Long> organization : organizations) {
+		for (IGroup<Long> organization : organizations.values()) {
 			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Adding users '" + users + "' to organization '" + organization + "'.");
-			organizationService.addUsersToOrganization(users, organization);
+			organizationService.addUsersToOrganization(new ArrayList<>(users.values()), organization);
 		}
 		organizationService.disconnect();
 	}
 
-	private static List<IRole<Long>> storeRoles(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
-			AuthenticationRequired, WebServiceAccessError {
+	private static Map<String, IRole<Long>> storeRoles(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
+			IOException, AuthenticationRequired, WebServiceAccessError {
 		RoleService roleService = new RoleService();
 		roleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		List<Role> roles = RoleFactory.getInstance().getElements();
-		LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Organizations to add '" + roles.size() + "'.");
-		List<IRole<Long>> rolesAdded = new ArrayList<>();
+		LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Roles to add '" + roles.size() + "'.");
+		Map<String, IRole<Long>> rolesAdded = new HashMap<>();
 		try {
 			for (Role role : roles) {
 				role.setCompanyId(company.getCompanyId());
 				try {
 					IRole<Long> roleAdded = roleService.addRole(role);
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added role '" + roleAdded + "'.");
-					rolesAdded.add(roleAdded);
+					rolesAdded.put(roleAdded.getUniqueName(), roleAdded);
 				} catch (DuplicatedLiferayElement dle) {
 					LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists the role '" + role + "'. ");
-					rolesAdded.add(roleService.getRole(role.getName(), company.getId()));
+					IRole<Long> existingRole = roleService.getRole(role.getName(), company.getId());
+					if (existingRole != null) {
+						rolesAdded.put(existingRole.getUniqueName(), existingRole);
+					}
 				}
 			}
 		} finally {
@@ -213,16 +225,53 @@ public class Main {
 		return rolesAdded;
 	}
 
-	private static void assignRolesToOrganizations(List<IRole<Long>> roles, List<IGroup<Long>> organizations, String connectionPassword)
+	private static void assignRolesToOrganizations(Map<String, IRole<Long>> roles, Map<String, IGroup<Long>> organizations, String connectionPassword)
 			throws ClientProtocolException, NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
 		RoleService roleService = new RoleService();
 		roleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
-		for (IRole<Long> role : roles) {
+		for (IRole<Long> role : roles.values()) {
 			if (((Role) role).getType() == RoleType.ORGANIZATION.getLiferayCode()) {
-				roleService.addRoleOrganizations(role, organizations);
+				roleService.addRoleOrganizations(role, new ArrayList<>(organizations.values()));
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Adding organizations '" + organizations + "' to role '" + role + "'.");
 			}
 		}
 		roleService.disconnect();
 	}
+
+	private static void assignRolesToUsers(Map<String, IRole<Long>> roles, Map<String, IUser<Long>> users, Map<String, IGroup<Long>> organizations,
+			String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException, AuthenticationRequired,
+			WebServiceAccessError {
+		List<UserRole> usersRoles = UsersRolesFactory.getInstance().getElements();
+		RoleService roleService = new RoleService();
+		roleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
+		for (UserRole userRole : usersRoles) {
+			for (RoleSelection roleSelection : userRole.getRoles()) {
+				IUser<Long> user = users.get(userRole.getUser());
+				IRole<Long> role = roles.get(roleSelection.getRole());
+				if (user == null) {
+					LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid user for role selection '" + roleSelection + "' in '" + userRole + "'.");
+					continue;
+				}
+				if (role == null) {
+					LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid role for role selection '" + roleSelection + "' in '" + userRole + "'.");
+					continue;
+				}
+				if (roleSelection.getOrganization() == null) {
+					// Generic role.
+					roleService.addRoleUser(user, role);
+					LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+							"Added role '" + roles.get(roleSelection.getRole()) + "' to user '" + users.get(userRole.getUser()) + "'.");
+				} else {
+					// Organization role.
+					roleService.addUserOrganizationRole(user, organizations.get(roleSelection.getOrganization()), role);
+					LiferayAutoconfiguratorLogger.info(
+							Main.class.getName(),
+							"Added role '" + roles.get(roleSelection.getRole()) + "' to user '" + users.get(userRole.getUser()) + "' in '"
+									+ organizations.get(roleSelection.getOrganization()) + "'.");
+				}
+			}
+		}
+		roleService.disconnect();
+	}
+
 }

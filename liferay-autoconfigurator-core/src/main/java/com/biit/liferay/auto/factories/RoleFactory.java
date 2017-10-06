@@ -1,4 +1,4 @@
-package com.biit.liferay.auto;
+package com.biit.liferay.auto.factories;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,23 +7,23 @@ import java.util.List;
 
 import com.biit.liferay.log.LiferayClientLogger;
 import com.biit.utils.file.FileReader;
-import com.liferay.portal.model.Organization;
+import com.liferay.portal.model.Role;
 
-public class OrganizationFactory extends JsonFactory<Organization> {
-	private final static String RESOURCE_FOLDER = "organizations";
-	private static OrganizationFactory instance;
+public class RoleFactory extends JsonFactory<Role> {
+	private final static String RESOURCE_FOLDER = "roles";
+	private static RoleFactory instance;
 
 	private static void createInstance() {
 		if (instance == null) {
-			synchronized (OrganizationFactory.class) {
+			synchronized (RoleFactory.class) {
 				if (instance == null) {
-					instance = new OrganizationFactory();
+					instance = new RoleFactory();
 				}
 			}
 		}
 	}
 
-	public static OrganizationFactory getInstance() {
+	public static RoleFactory getInstance() {
 		if (instance == null) {
 			createInstance();
 		}
@@ -36,19 +36,19 @@ public class OrganizationFactory extends JsonFactory<Organization> {
 	}
 
 	@Override
-	public List<Organization> getElements() {
+	public List<Role> getElements() {
 		List<File> definitions = getDefinitions();
-		List<Organization> organizations = new ArrayList<>();
+		List<Role> roles = new ArrayList<>();
 		for (File file : definitions) {
 			try {
 				String fileContent = FileReader.readFile(file);
-				Organization user = decodeFromJson(fileContent, Organization.class);
-				organizations.add(user);
+				Role role = decodeFromJson(fileContent, Role.class);
+				roles.add(role);
 			} catch (IOException e) {
 				LiferayClientLogger.errorMessage(this.getClass().getName(), e);
 			}
 		}
-		return organizations;
+		return roles;
 	}
 
 }

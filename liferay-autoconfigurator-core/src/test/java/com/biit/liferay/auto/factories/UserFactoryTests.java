@@ -1,10 +1,11 @@
-package com.biit.liferay.auto;
+package com.biit.liferay.auto.factories;
 
 import java.util.List;
 
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import com.biit.liferay.auto.factories.UserFactory;
 import com.liferay.portal.model.User;
 
 @Test(groups = "userFactory")

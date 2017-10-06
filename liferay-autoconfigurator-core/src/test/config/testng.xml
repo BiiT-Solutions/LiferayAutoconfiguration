@@ -8,7 +8,7 @@
 			</run>
 		</groups>
 		<classes>
-			<class name="com.biit.liferay.auto.UserFactoryTests" />
+			<class name="com.biit.liferay.auto.factories.UserFactoryTests" />
 		</classes>
 	</test>
 </suite>

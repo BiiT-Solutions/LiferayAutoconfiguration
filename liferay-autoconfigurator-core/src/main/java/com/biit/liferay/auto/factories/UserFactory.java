@@ -1,4 +1,4 @@
-package com.biit.liferay.auto;
+package com.biit.liferay.auto.factories;
 
 import java.io.File;
 import java.io.IOException;

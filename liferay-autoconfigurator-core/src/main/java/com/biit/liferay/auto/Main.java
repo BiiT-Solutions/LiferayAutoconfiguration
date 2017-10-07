@@ -28,6 +28,8 @@ import com.biit.usermanager.entity.IGroup;
 import com.biit.usermanager.entity.IRole;
 import com.biit.usermanager.entity.IUser;
 import com.biit.usermanager.security.exceptions.AuthenticationRequired;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.Role;
@@ -52,17 +54,16 @@ public class Main {
 	 *            virtualhost, default user password,
 	 */
 	public static void main(String[] args) {
-		// Access with default admin user to a service. if default password has
-		// been change, do nothing.
-		CompanyService companyService = new CompanyService();
-		companyService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, getPassword(args));
 		try {
-			company = (Company) companyService.getCompanyByVirtualHost(getCompany(args));
-			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Company obtained '" + company.getCompanyId() + "'.");
-			// Company obtained, first connection to Liferay.
-			if (company != null) {
-				// Change password to default admin user.
-				updateDefaultPassword(getPassword(args));
+			// Change password to default admin user. Access with default admin
+			// user to a service. if default password has been change, do
+			// nothing.
+			if (updateDefaultPassword(getPassword(args))) {
+				company = getCompany(getCompany(args), getPassword(args));
+				if (company == null) {
+					LiferayAutoconfiguratorLogger.error(Main.class.getName(), "No company found. Check your configuration.");
+					System.exit(-1);
+				}
 
 				// Store new users.
 				Map<String, IUser<Long>> users = storeUsers(getPassword(args));
@@ -106,7 +107,20 @@ public class Main {
 		}
 	}
 
-	private static void updateDefaultPassword(String newPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
+	private static Company getCompany(String companyName, String connectionPassword) throws JsonParseException, JsonMappingException,
+			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
+		CompanyService companyService = new CompanyService();
+		try {
+			companyService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
+			Company company = (Company) companyService.getCompanyByVirtualHost(companyName);
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Company obtained '" + company.getCompanyId() + "'.");
+			return company;
+		} finally {
+			companyService.disconnect();
+		}
+	}
+
+	private static boolean updateDefaultPassword(String newPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
 			WebServiceAccessError {
 		UserService userService = new UserService();
 		PasswordService passwordService = new PasswordService();
@@ -116,12 +130,14 @@ public class Main {
 			IUser<Long> defaultUser = userService.getUserByEmailAddress(company, DEFAULT_LIFERAY_ADMIN_USER);
 			defaultUser = passwordService.updatePassword(defaultUser, newPassword);
 			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Default password changed.");
+			return true;
 		} catch (AuthenticationRequired ar) {
 			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Default password NOT changed.");
 		} finally {
 			passwordService.disconnect();
 			userService.disconnect();
 		}
+		return false;
 	}
 
 	private static Map<String, IUser<Long>> storeUsers(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,

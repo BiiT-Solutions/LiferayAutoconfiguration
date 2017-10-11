@@ -64,6 +64,12 @@
 			<artifactId>liferay-authentication-client</artifactId>
 			<version>${liferay-authentication-client.version}</version>
 		</dependency>
+		<!-- Image upload -->
+		<dependency>
+			<groupId>com.biit.liferay</groupId>
+			<artifactId>liferay-knowledge-base</artifactId>
+			<version>${liferay-knowledge-base.version}</version>
+		</dependency>
 		<!-- Testing -->
 		<dependency>
 			<groupId>org.testng</groupId>

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.http.client.ClientProtocolException;
 
@@ -15,7 +16,6 @@ import com.biit.liferay.access.CompanyService;
 import com.biit.liferay.access.FileEntryService;
 import com.biit.liferay.access.OrganizationService;
 import com.biit.liferay.access.PasswordService;
-import com.biit.liferay.access.RepositoryService;
 import com.biit.liferay.access.RoleService;
 import com.biit.liferay.access.SiteService;
 import com.biit.liferay.access.UserService;
@@ -30,7 +30,7 @@ import com.biit.liferay.auto.factories.UsersRolesFactory;
 import com.biit.liferay.auto.log.LiferayAutoconfiguratorLogger;
 import com.biit.liferay.auto.model.RoleSelection;
 import com.biit.liferay.auto.model.UserRole;
-import com.biit.liferay.model.Repository;
+import com.biit.liferay.model.IFileEntry;
 import com.biit.usermanager.entity.IGroup;
 import com.biit.usermanager.entity.IRole;
 import com.biit.usermanager.entity.IUser;
@@ -57,10 +57,9 @@ public class Main {
 	private final static String SITE_DESCRIPTION = "This site is created with the automatic Liferay configuration tool.";
 	private final static String SITE_URL = "/test-site";
 
-	private final static String REPOSITORY_NAME = "testSite";
-	private final static String REPOSITORY_DESCRIPTION = "This site is created with the automatic Liferay configuration tool.";
-
 	private static final String DEFAULT_IMAGE_DESCRIPTION = "Image uploaded automatically.";
+
+	private static final long FOLDER_ID = 0l;
 
 	private static Company company;
 	private static Site site;
@@ -342,27 +341,30 @@ public class Main {
 	public static void uploadImages(String connectionPassword) throws ClientProtocolException, IOException, NotConnectedToWebServiceException,
 			AuthenticationRequired, WebServiceAccessError {
 		List<File> images = ImageFactory.getInstance().getElements();
-		// Create a repository
-		RepositoryService repositoryService = new RepositoryService();
-		repositoryService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
+		// Upload images
+		FileEntryService fileService = new FileEntryService();
+		fileService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		try {
-			Repository repository = (Repository) repositoryService.getRespository(repositoryId);
-
-			repository = (Repository) repositoryService.addRespository(site, REPOSITORY_NAME, REPOSITORY_DESCRIPTION);
-
-			// Upload images
-			FileEntryService fileService = new FileEntryService();
-			fileService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
-			try {
-				for (File image : images) {
-					String mimeType = URLConnection.guessContentTypeFromName(image.getName());
-					fileService.addFile(repository.getGroupId(), 0l, image.getName(), mimeType, image.getName(), DEFAULT_IMAGE_DESCRIPTION, "", image);
+			for (File image : images) {
+				String mimeType = URLConnection.guessContentTypeFromName(image.getName());
+				Set<IFileEntry<Long>> existingImages = fileService.getFileEntries(site.getGroupId(), FOLDER_ID);
+				// Check if image already exists.
+				boolean notInserted = true;
+				for (IFileEntry<Long> existingImage : existingImages) {
+					if (existingImage.getName().equals(image.getName())) {
+						notInserted = false;
+						break;
+					}
 				}
-			} finally {
-				fileService.disconnect();
+				if (notInserted) {
+					fileService.addFile(site.getGroupId(), FOLDER_ID, image.getName(), mimeType, image.getName(), DEFAULT_IMAGE_DESCRIPTION, "", image);
+					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Inserted image '" + image.getName() + "'.");
+				} else {
+					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + image.getName() + "' already inserted.");
+				}
 			}
 		} finally {
-			repositoryService.disconnect();
+			fileService.disconnect();
 		}
 	}
 }

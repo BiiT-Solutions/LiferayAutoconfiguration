@@ -2,6 +2,7 @@ package com.biit.liferay.auto;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,19 +69,21 @@ public class Main {
 	 * Main method
 	 * 
 	 * @param args
-	 *            virtualhost, default user password,
+	 *            virtualhost, new user password,
 	 */
 	public static void main(String[] args) {
 		try {
-			// Change password to default admin user. Access with default admin
-			// user to a service. if default password has been change, do
-			// nothing.
-			if (updateDefaultPassword(getPassword(args))) {
+			try {
+				// Try default password.
+				company = getCompany(getCompany(args), DEFAULT_LIFERAY_PASSWORD);
+			} catch (ConnectException ce) {
+				// Not first time executed, try new password.
 				company = getCompany(getCompany(args), getPassword(args));
-				if (company == null) {
-					LiferayAutoconfiguratorLogger.error(Main.class.getName(), "No company found. Check your configuration.");
-					System.exit(-1);
-				}
+			}
+
+			if (company != null) {
+				// Change password to default admin user.
+				updateDefaultPassword(getPassword(args));
 
 				// Create site.
 				site = getSite(getPassword(args));
@@ -107,6 +110,9 @@ public class Main {
 
 				// Add images.
 				uploadImages(getPassword(args));
+			} else {
+				LiferayAutoconfiguratorLogger.error(Main.class.getName(), "No company found. Check your configuration.");
+				System.exit(-1);
 			}
 		} catch (NotConnectedToWebServiceException | IOException | AuthenticationRequired | WebServiceAccessError e) {
 			LiferayAutoconfiguratorLogger.errorMessage(Main.class.getName(), e);

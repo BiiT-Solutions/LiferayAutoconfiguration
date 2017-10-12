@@ -3,13 +3,14 @@ package com.biit.liferay.auto;
 import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+
+import javax.activation.MimetypesFileTypeMap;
 
 import org.apache.http.client.ClientProtocolException;
 
@@ -54,9 +55,9 @@ public class Main {
 	private static final int ARG_VIRTUALHOST = 0;
 	private static final int ARG_PASSWORD = 1;
 
-	private final static String SITE_NAME = "testSite";
+	private final static String SITE_NAME = "Autoconfiguration";
 	private final static String SITE_DESCRIPTION = "This site is created with the automatic Liferay configuration tool.";
-	private final static String SITE_URL = "/test-site";
+	private final static String SITE_URL = "/autoconfig-site";
 
 	private static final String DEFAULT_IMAGE_DESCRIPTION = "Image uploaded automatically.";
 
@@ -75,8 +76,8 @@ public class Main {
 		try {
 			try {
 				// Try default password.
-				company = getCompany(getCompany(args), DEFAULT_LIFERAY_PASSWORD);
-			} catch (ConnectException ce) {
+				company = getCompany(getCompany(args), DEFAULT_LIFERAY_ADMIN_PASSWORD);
+			} catch (ConnectException | AuthenticationRequired ce) {
 				// Not first time executed, try new password.
 				company = getCompany(getCompany(args), getPassword(args));
 			}
@@ -154,12 +155,13 @@ public class Main {
 		SiteService siteService = new SiteService();
 		try {
 			siteService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
-			Site site = (Site) siteService.getSite(company, SITE_NAME);
-			if (site == null) {
+			Site site;
+			try {
+				site = (Site) siteService.getSite(company, SITE_NAME);
+				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Site already exists.");
+			} catch (WebServiceAccessError wsa) {
 				site = (Site) siteService.addSite(SITE_NAME, SITE_DESCRIPTION, 0, SITE_URL);
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Site created '" + site.getUniqueName() + "'.");
-			} else {
-				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Site already exists.");
 			}
 			return site;
 		} finally {
@@ -352,7 +354,6 @@ public class Main {
 		fileService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		try {
 			for (File image : images) {
-				String mimeType = URLConnection.guessContentTypeFromName(image.getName());
 				Set<IFileEntry<Long>> existingImages = fileService.getFileEntries(site.getGroupId(), FOLDER_ID);
 				// Check if image already exists.
 				boolean notInserted = true;
@@ -362,11 +363,15 @@ public class Main {
 						break;
 					}
 				}
+				// Remove temp file extra chars.
+				String name = image.getName().substring(0, image.getName().indexOf('.') + 4);
 				if (notInserted) {
-					fileService.addFile(site.getGroupId(), FOLDER_ID, image.getName(), mimeType, image.getName(), DEFAULT_IMAGE_DESCRIPTION, "", image);
-					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Inserted image '" + image.getName() + "'.");
+					// String mimeType = "image/png";
+					String mimeType = new MimetypesFileTypeMap().getContentType(name);
+					fileService.addFile(site.getGroupId(), FOLDER_ID, name, mimeType, name, DEFAULT_IMAGE_DESCRIPTION, "", image);
+					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Inserted image '" + name + " " + image.getName() + "'.");
 				} else {
-					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + image.getName() + "' already inserted.");
+					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + name + " " + image.getName() + "' already inserted.");
 				}
 			}
 		} finally {

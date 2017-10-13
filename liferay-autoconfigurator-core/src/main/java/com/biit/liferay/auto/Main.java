@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -18,6 +19,7 @@ import com.biit.liferay.access.CompanyService;
 import com.biit.liferay.access.FileEntryService;
 import com.biit.liferay.access.OrganizationService;
 import com.biit.liferay.access.PasswordService;
+import com.biit.liferay.access.ResourcePermissionService;
 import com.biit.liferay.access.RoleService;
 import com.biit.liferay.access.SiteService;
 import com.biit.liferay.access.UserService;
@@ -40,6 +42,7 @@ import com.biit.usermanager.entity.IUser;
 import com.biit.usermanager.security.exceptions.AuthenticationRequired;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.liferay.portal.model.ActionKey;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.Role;
@@ -61,6 +64,9 @@ public class Main {
 	private final static String SITE_URL = "/autoconfig-site";
 
 	private static final String DEFAULT_IMAGE_DESCRIPTION = "Image uploaded automatically.";
+
+	private final static String LIFERAY_DLFILEENTRY_CLASS = "com.liferay.portlet.documentlibrary.model.DLFileEntry";
+	private final static String GUEST_ROLE = "Guest";
 
 	private static final long FOLDER_ID = 0l;
 
@@ -112,7 +118,10 @@ public class Main {
 
 				// Add images.
 				Map<String, IFileEntry<Long>> images = uploadImages(getPassword(args));
-				System.out.println(images);
+
+				// set guest permissions to images.
+				setGuestPermissions(new HashSet<>(images.values()), getPassword(args));
+
 			} else {
 				LiferayAutoconfiguratorLogger.error(Main.class.getName(), "No company found. Check your configuration.");
 				System.exit(-1);
@@ -377,5 +386,38 @@ public class Main {
 			fileService.disconnect();
 		}
 		return imagesUploaded;
+	}
+
+	public static void setGuestPermissions(Set<IFileEntry<Long>> images, String connectionPassword) throws ClientProtocolException,
+			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
+		ResourcePermissionService resourcePermissionsService = new ResourcePermissionService();
+		resourcePermissionsService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
+
+		RoleService roleService = new RoleService();
+		try {
+			roleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
+			try {
+				ActionKey[] allowedActions = new ActionKey[] { ActionKey.VIEW };
+				for (IFileEntry<Long> fileEntry : images) {
+					IRole<Long> guestRole = roleService.getRole(GUEST_ROLE, fileEntry.getCompanyId());
+					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Role obtained '" + guestRole + "'.");
+					Map<Long, ActionKey[]> roleIdsToActionIds = new HashMap<>();
+					roleIdsToActionIds.put(guestRole.getId(), allowedActions);
+
+					if (resourcePermissionsService.addResourcePermission(LIFERAY_DLFILEENTRY_CLASS, fileEntry.getId(), fileEntry.getGroupId(),
+							fileEntry.getCompanyId(), roleIdsToActionIds)) {
+						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + fileEntry.getTitle() + "' permissions changed for role '"
+								+ guestRole + "'.");
+					} else {
+						LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Image '" + fileEntry.getTitle() + "' permissions NOT changed for role '"
+								+ guestRole + "'.");
+					}
+				}
+			} finally {
+				resourcePermissionsService.disconnect();
+			}
+		} finally {
+			resourcePermissionsService.disconnect();
+		}
 	}
 }

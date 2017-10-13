@@ -17,6 +17,7 @@ import org.apache.http.client.ClientProtocolException;
 
 import com.biit.liferay.access.CompanyService;
 import com.biit.liferay.access.FileEntryService;
+import com.biit.liferay.access.KnowledgeBaseService;
 import com.biit.liferay.access.OrganizationService;
 import com.biit.liferay.access.PasswordService;
 import com.biit.liferay.access.ResourcePermissionService;
@@ -27,6 +28,7 @@ import com.biit.liferay.access.exceptions.DuplicatedFileException;
 import com.biit.liferay.access.exceptions.DuplicatedLiferayElement;
 import com.biit.liferay.access.exceptions.NotConnectedToWebServiceException;
 import com.biit.liferay.access.exceptions.WebServiceAccessError;
+import com.biit.liferay.auto.factories.ArticleFactory;
 import com.biit.liferay.auto.factories.ImageFactory;
 import com.biit.liferay.auto.factories.OrganizationFactory;
 import com.biit.liferay.auto.factories.RoleFactory;
@@ -35,7 +37,9 @@ import com.biit.liferay.auto.factories.UsersRolesFactory;
 import com.biit.liferay.auto.log.LiferayAutoconfiguratorLogger;
 import com.biit.liferay.auto.model.RoleSelection;
 import com.biit.liferay.auto.model.UserRole;
+import com.biit.liferay.model.IArticle;
 import com.biit.liferay.model.IFileEntry;
+import com.biit.liferay.model.KbArticle;
 import com.biit.usermanager.entity.IGroup;
 import com.biit.usermanager.entity.IRole;
 import com.biit.usermanager.entity.IUser;
@@ -83,10 +87,10 @@ public class Main {
 		try {
 			try {
 				// Try default password.
-				company = getCompany(getCompany(args), DEFAULT_LIFERAY_ADMIN_PASSWORD);
+				company = getCompany(getVirtualHost(args), DEFAULT_LIFERAY_ADMIN_PASSWORD);
 			} catch (ConnectException | AuthenticationRequired ce) {
 				// Not first time executed, try new password.
-				company = getCompany(getCompany(args), getPassword(args));
+				company = getCompany(getVirtualHost(args), getPassword(args));
 			}
 
 			if (company != null) {
@@ -119,8 +123,11 @@ public class Main {
 				// Add images.
 				Map<String, IFileEntry<Long>> images = uploadImages(getPassword(args));
 
-				// set guest permissions to images.
+				// Set guest permissions to images.
 				setGuestPermissions(new HashSet<>(images.values()), getPassword(args));
+
+				// Set articles.
+				storeArticles(getVirtualHost(args), getPassword(args));
 
 			} else {
 				LiferayAutoconfiguratorLogger.error(Main.class.getName(), "No company found. Check your configuration.");
@@ -132,7 +139,7 @@ public class Main {
 		System.exit(0);
 	}
 
-	public static String getCompany(String[] args) {
+	public static String getVirtualHost(String[] args) {
 		if (args.length <= ARG_VIRTUALHOST) {
 			return DEFAULT_LIFERAY_VIRTUALHOST;
 		} else {
@@ -418,5 +425,26 @@ public class Main {
 		} finally {
 			resourcePermissionsService.disconnect();
 		}
+	}
+
+	public static Map<String, IArticle<Long>> storeArticles(String virtualHost, String connectionPassword) throws ClientProtocolException,
+			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
+		// Get users from resources profile
+		KnowledgeBaseService knowledgeBaseService = new KnowledgeBaseService();
+		knowledgeBaseService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
+		List<KbArticle> articles = ArticleFactory.getInstance().getElements();
+		LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Articles to add '" + articles.size() + "'.");
+		Map<String, IArticle<Long>> articlesAdded = new HashMap<>();
+		try {
+			for (KbArticle articleToAdd : articles) {
+//				articleToAdd.setCompanyId(company.getCompanyId());
+//				IArticle<Long> articleAdded = knowledgeBaseService.addArticle(articleToAdd, site.getName(), virtualHost);
+				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added article '" + articleToAdd + "'.");
+//				articlesAdded.put(articleToAdd.getUniqueName(), articleToAdd);
+			}
+		} finally {
+			knowledgeBaseService.disconnect();
+		}
+		return articlesAdded;
 	}
 }

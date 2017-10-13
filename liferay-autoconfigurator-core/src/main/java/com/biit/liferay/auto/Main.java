@@ -400,7 +400,6 @@ public class Main {
 				ActionKey[] allowedActions = new ActionKey[] { ActionKey.VIEW };
 				for (IFileEntry<Long> fileEntry : images) {
 					IRole<Long> guestRole = roleService.getRole(GUEST_ROLE, fileEntry.getCompanyId());
-					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Role obtained '" + guestRole + "'.");
 					Map<Long, ActionKey[]> roleIdsToActionIds = new HashMap<>();
 					roleIdsToActionIds.put(guestRole.getId(), allowedActions);
 

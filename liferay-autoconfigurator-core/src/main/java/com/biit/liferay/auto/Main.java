@@ -21,6 +21,7 @@ import com.biit.liferay.access.PasswordService;
 import com.biit.liferay.access.RoleService;
 import com.biit.liferay.access.SiteService;
 import com.biit.liferay.access.UserService;
+import com.biit.liferay.access.exceptions.DuplicatedFileException;
 import com.biit.liferay.access.exceptions.DuplicatedLiferayElement;
 import com.biit.liferay.access.exceptions.NotConnectedToWebServiceException;
 import com.biit.liferay.access.exceptions.WebServiceAccessError;
@@ -110,7 +111,8 @@ public class Main {
 				assignRolesToUsers(roles, users, organizations, getPassword(args));
 
 				// Add images.
-				uploadImages(getPassword(args));
+				Map<String, IFileEntry<Long>> images = uploadImages(getPassword(args));
+				System.out.println(images);
 			} else {
 				LiferayAutoconfiguratorLogger.error(Main.class.getName(), "No company found. Check your configuration.");
 				System.exit(-1);
@@ -346,36 +348,34 @@ public class Main {
 		}
 	}
 
-	public static void uploadImages(String connectionPassword) throws ClientProtocolException, IOException, NotConnectedToWebServiceException,
-			AuthenticationRequired, WebServiceAccessError {
+	public static Map<String, IFileEntry<Long>> uploadImages(String connectionPassword) throws ClientProtocolException, IOException,
+			NotConnectedToWebServiceException, AuthenticationRequired, WebServiceAccessError {
+		Map<String, IFileEntry<Long>> imagesUploaded = new HashMap<>();
 		List<File> images = ImageFactory.getInstance().getElements();
 		// Upload images
 		FileEntryService fileService = new FileEntryService();
 		fileService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		try {
 			for (File image : images) {
-				Set<IFileEntry<Long>> existingImages = fileService.getFileEntries(site.getGroupId(), FOLDER_ID);
-				// Check if image already exists.
-				boolean notInserted = true;
-				for (IFileEntry<Long> existingImage : existingImages) {
-					if (existingImage.getName().equals(image.getName())) {
-						notInserted = false;
-						break;
-					}
-				}
 				// Remove temp file extra chars.
 				String name = image.getName().substring(0, image.getName().indexOf('.') + 4);
-				if (notInserted) {
+				try {
 					// String mimeType = "image/png";
 					String mimeType = new MimetypesFileTypeMap().getContentType(name);
 					fileService.addFile(site.getGroupId(), FOLDER_ID, name, mimeType, name, DEFAULT_IMAGE_DESCRIPTION, "", image);
-					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Inserted image '" + name + " " + image.getName() + "'.");
-				} else {
-					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + name + " " + image.getName() + "' already inserted.");
+					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Inserted image '" + name + "'.");
+				} catch (DuplicatedFileException dfe) {
+					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + name + "' already inserted.");
 				}
+			}
+			// Add existing images
+			for (IFileEntry<Long> existingImage : fileService.getFileEntries(site.getGroupId(), FOLDER_ID)) {
+				// Get inserted images.
+				imagesUploaded.put(existingImage.getTitle(), existingImage);
 			}
 		} finally {
 			fileService.disconnect();
 		}
+		return imagesUploaded;
 	}
 }

@@ -15,14 +15,15 @@ import javax.activation.MimetypesFileTypeMap;
 
 import org.apache.http.client.ClientProtocolException;
 
+import com.biit.liferay.access.ArticleService;
 import com.biit.liferay.access.CompanyService;
 import com.biit.liferay.access.FileEntryService;
-import com.biit.liferay.access.KnowledgeBaseService;
 import com.biit.liferay.access.OrganizationService;
 import com.biit.liferay.access.PasswordService;
 import com.biit.liferay.access.ResourcePermissionService;
 import com.biit.liferay.access.RoleService;
 import com.biit.liferay.access.SiteService;
+import com.biit.liferay.access.SiteType;
 import com.biit.liferay.access.UserService;
 import com.biit.liferay.access.exceptions.DuplicatedFileException;
 import com.biit.liferay.access.exceptions.DuplicatedLiferayElement;
@@ -178,7 +179,7 @@ public class Main {
 				site = (Site) siteService.getSite(company, SITE_NAME);
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Site already exists.");
 			} catch (WebServiceAccessError wsa) {
-				site = (Site) siteService.addSite(SITE_NAME, SITE_DESCRIPTION, 0, SITE_URL);
+				site = (Site) siteService.addSite(SITE_NAME, SITE_DESCRIPTION, SiteType.DEFAULT_PARENT_GROUP_ID, SITE_URL);
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Site created '" + site.getUniqueName() + "'.");
 			}
 			return site;
@@ -430,20 +431,23 @@ public class Main {
 	public static Map<String, IArticle<Long>> storeArticles(String virtualHost, String connectionPassword) throws ClientProtocolException,
 			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
 		// Get users from resources profile
-		KnowledgeBaseService knowledgeBaseService = new KnowledgeBaseService();
-		knowledgeBaseService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
+		ArticleService ArticleService = new ArticleService();
+		ArticleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		List<KbArticle> articles = ArticleFactory.getInstance().getElements();
 		LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Articles to add '" + articles.size() + "'.");
 		Map<String, IArticle<Long>> articlesAdded = new HashMap<>();
 		try {
 			for (KbArticle articleToAdd : articles) {
-//				articleToAdd.setCompanyId(company.getCompanyId());
-//				IArticle<Long> articleAdded = knowledgeBaseService.addArticle(articleToAdd, site.getName(), virtualHost);
+				// articleToAdd.setCompanyId(company.getCompanyId());
+				// IArticle<Long> articleAdded =
+				// ArticleService.addArticle(articleToAdd, site.getName(),
+				// virtualHost);
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added article '" + articleToAdd + "'.");
-//				articlesAdded.put(articleToAdd.getUniqueName(), articleToAdd);
+				// articlesAdded.put(articleToAdd.getUniqueName(),
+				// articleToAdd);
 			}
 		} finally {
-			knowledgeBaseService.disconnect();
+			ArticleService.disconnect();
 		}
 		return articlesAdded;
 	}

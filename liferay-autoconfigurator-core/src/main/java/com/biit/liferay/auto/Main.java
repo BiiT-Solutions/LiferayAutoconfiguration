@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.activation.MimetypesFileTypeMap;
 
@@ -38,6 +40,7 @@ import com.biit.liferay.auto.factories.UsersRolesFactory;
 import com.biit.liferay.auto.log.LiferayAutoconfiguratorLogger;
 import com.biit.liferay.auto.model.RoleSelection;
 import com.biit.liferay.auto.model.UserRole;
+import com.biit.liferay.configuration.LiferayConfigurationReader;
 import com.biit.liferay.model.IArticle;
 import com.biit.liferay.model.IFileEntry;
 import com.biit.liferay.model.KbArticle;
@@ -63,6 +66,7 @@ public class Main {
 
 	private static final int ARG_VIRTUALHOST = 0;
 	private static final int ARG_PASSWORD = 1;
+	private static final int ARG_LIFERAY_SERVER = 2;
 
 	private final static String SITE_NAME = "Autoconfiguration";
 	private final static String SITE_DESCRIPTION = "This site is created with the automatic Liferay configuration tool.";
@@ -75,14 +79,17 @@ public class Main {
 
 	private static final long FOLDER_ID = 0l;
 
+	private static final Pattern pattern = Pattern.compile("\\@\\@.*?\\@\\@");
+
 	private static Company company;
 	private static Site site;
 
 	/**
-	 * Main method
+	 * Main method: java -jar liferay-autoconfigurator.jar localhost asd123
+	 * https://docker.biit-solutions.com/liferay
 	 * 
 	 * @param args
-	 *            virtualhost, new user password,
+	 *            virtualhost, new user password, liferayServerUrl,
 	 */
 	public static void main(String[] args) {
 		try {
@@ -128,7 +135,7 @@ public class Main {
 				setGuestPermissions(new HashSet<>(images.values()), getPassword(args));
 
 				// Set articles.
-				storeArticles(getVirtualHost(args), getPassword(args));
+				storeArticles(getVirtualHost(args), getPassword(args), getLiferayServer(args), images);
 
 			} else {
 				LiferayAutoconfiguratorLogger.error(Main.class.getName(), "No company found. Check your configuration.");
@@ -153,6 +160,15 @@ public class Main {
 			return DEFAULT_LIFERAY_PASSWORD;
 		} else {
 			return args[ARG_PASSWORD];
+		}
+	}
+
+	public static String getLiferayServer(String[] args) {
+		if (args.length <= ARG_LIFERAY_SERVER) {
+			return LiferayConfigurationReader.getInstance().getLiferayProtocol() + "://" + LiferayConfigurationReader.getInstance().getHost() + ":"
+					+ LiferayConfigurationReader.getInstance().getConnectionPort();
+		} else {
+			return args[ARG_LIFERAY_SERVER];
 		}
 	}
 
@@ -428,26 +444,49 @@ public class Main {
 		}
 	}
 
-	public static Map<String, IArticle<Long>> storeArticles(String virtualHost, String connectionPassword) throws ClientProtocolException,
-			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
+	public static Map<String, IArticle<Long>> storeArticles(String virtualHost, String connectionPassword, String liferayServerUrl,
+			Map<String, IFileEntry<Long>> existingImages) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
+			AuthenticationRequired, WebServiceAccessError {
 		// Get users from resources profile
-		ArticleService ArticleService = new ArticleService();
-		ArticleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
+		ArticleService articleService = new ArticleService();
+		articleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		List<KbArticle> articles = ArticleFactory.getInstance().getElements();
 		LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Articles to add '" + articles.size() + "'.");
+
 		Map<String, IArticle<Long>> articlesAdded = new HashMap<>();
 		try {
 			for (KbArticle articleToAdd : articles) {
-				// articleToAdd.setCompanyId(company.getCompanyId());
+				articleToAdd.setCompanyId(company.getCompanyId());
+				String content = articleToAdd.getContent();
+				
+				//Replace image tags with image urls.
+				Matcher matcher = pattern.matcher(content);
+				while (matcher.find()) {
+					try {
+						String image = matcher.group().replaceAll("\\@", "");
+						if (existingImages.get(image) != null) {
+							// https://docker.biit-solutions.com/liferay/documents/20601/0/11_leg_lock.png/f580590c-ce69-430c-b9a2-dcf0e9831743
+							String imageUrl = liferayServerUrl + FileEntryService.getFileRelativeUrl(existingImages.get(image));
+							articleToAdd.setContent(articleToAdd.getContent().replaceAll("\\@\\@" + image + "\\@\\@", imageUrl));
+							LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image url '" + image + "' replaced by '" + imageUrl + "'.");
+						}
+					} catch (IndexOutOfBoundsException iob) {
+						LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Image url substitution failed for article '" + articleToAdd + "'.");
+					}
+				}
+				
+				//Store updated articles.
+				
 				// IArticle<Long> articleAdded =
-				// ArticleService.addArticle(articleToAdd, site.getName(),
+				// articleService.addArticle(articleToAdd, site.getName(),
 				// virtualHost);
-				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added article '" + articleToAdd + "'.");
+				// LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+				// "Added article '" + articleAdded + "'.");
 				// articlesAdded.put(articleToAdd.getUniqueName(),
-				// articleToAdd);
+				// articleAdded);
 			}
 		} finally {
-			ArticleService.disconnect();
+			articleService.disconnect();
 		}
 		return articlesAdded;
 	}

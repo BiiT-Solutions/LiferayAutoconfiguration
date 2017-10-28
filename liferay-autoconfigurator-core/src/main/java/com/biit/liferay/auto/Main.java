@@ -96,8 +96,10 @@ public class Main {
 			try {
 				// Try default password.
 				company = getCompany(getVirtualHost(args), DEFAULT_LIFERAY_ADMIN_PASSWORD);
+				LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Accessing using default password '" + DEFAULT_LIFERAY_ADMIN_PASSWORD + "'.");
 			} catch (ConnectException | AuthenticationRequired ce) {
 				// Not first time executed, try new password.
+				LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Accessing using provided password '" + getPassword(args) + "'.");
 				company = getCompany(getVirtualHost(args), getPassword(args));
 			}
 
@@ -458,8 +460,8 @@ public class Main {
 			for (KbArticle articleToAdd : articles) {
 				articleToAdd.setCompanyId(company.getCompanyId());
 				String content = articleToAdd.getContent();
-				
-				//Replace image tags with image urls.
+
+				// Replace image tags with image urls.
 				Matcher matcher = pattern.matcher(content);
 				while (matcher.find()) {
 					try {
@@ -474,9 +476,9 @@ public class Main {
 						LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Image url substitution failed for article '" + articleToAdd + "'.");
 					}
 				}
-				
-				//Store updated articles.
-				
+
+				// Store updated articles.
+
 				// IArticle<Long> articleAdded =
 				// articleService.addArticle(articleToAdd, site.getName(),
 				// virtualHost);

@@ -85,7 +85,7 @@ public class Main {
 	private static Site site;
 
 	/**
-	 * Main method: java -jar liferay-autoconfigurator.jar localhost asd123
+	 * Main method: java -jar liferay-autoconfigurator.jar asd123 localhost
 	 * https://docker.biit-solutions.com/liferay
 	 * 
 	 * @param args

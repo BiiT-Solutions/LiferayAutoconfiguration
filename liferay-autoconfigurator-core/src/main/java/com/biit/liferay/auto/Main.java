@@ -139,6 +139,7 @@ public class Main {
 				// Set articles.
 				storeArticles(getVirtualHost(args), getPassword(args), getLiferayServer(args), images);
 
+				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Liferay updated correctly!");
 			} else {
 				LiferayAutoconfiguratorLogger.error(Main.class.getName(), "No company found. Check your configuration.");
 				System.exit(-1);
@@ -457,6 +458,9 @@ public class Main {
 
 		Map<String, IArticle<Long>> articlesAdded = new HashMap<>();
 		try {
+			// Getting already stored articles.
+			Set<IArticle<Long>> articlesStored = articleService.getArticles(site);
+
 			for (KbArticle articleToAdd : articles) {
 				articleToAdd.setCompanyId(company.getCompanyId());
 				String content = articleToAdd.getContent();
@@ -477,15 +481,30 @@ public class Main {
 					}
 				}
 
-				// Store updated articles.
+				// Check already inserted article.
+				boolean existingArticle = false;
+				for (IArticle<Long> articleStored : articlesStored) {
+					// As title is the file name, in this case is unique.
+					if (Objects.equals(articleStored.getTitle(), articleToAdd.getTitle())) {
+						// Update article with new content.
+						articleStored.setDescription(articleToAdd.getDescription());
+						articleStored.setContent(articleToAdd.getContent());
+						((KbArticle) articleStored).setCompanyId(company.getCompanyId());
 
-				// IArticle<Long> articleAdded =
-				// articleService.addArticle(articleToAdd, site.getName(),
-				// virtualHost);
-				// LiferayAutoconfiguratorLogger.info(Main.class.getName(),
-				// "Added article '" + articleAdded + "'.");
-				// articlesAdded.put(articleToAdd.getUniqueName(),
-				// articleAdded);
+						IArticle<Long> articleAdded = articleService.editArticle(articleStored);
+						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Article '" + articleStored + "' updated.");
+						articlesAdded.put(articleAdded.getUniqueName(), articleAdded);
+						existingArticle = true;
+						break;
+					}
+				}
+
+				// Store new articles.
+				if (!existingArticle) {
+					IArticle<Long> articleAdded = articleService.addArticle(articleToAdd, site.getName(), virtualHost);
+					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added article '" + articleAdded + "'.");
+					articlesAdded.put(articleToAdd.getUniqueName(), articleAdded);
+				}
 			}
 		} finally {
 			articleService.disconnect();

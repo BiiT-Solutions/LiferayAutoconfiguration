@@ -466,6 +466,11 @@ public class Main {
 				// Force the recalculation of the parent resource class name by
 				// the webservice.
 				articleToAdd.setParentResourceClassNameId(null);
+				// URL title must start with a '/' and contain only alphanumeric
+				// characters, dashes, and underscores
+				if (!articleToAdd.getUrlTitle().startsWith("/")) {
+					articleToAdd.setUrlTitle("/" + articleToAdd.getUrlTitle());
+				}
 				String content = articleToAdd.getContent();
 
 				// Replace image tags with image urls.

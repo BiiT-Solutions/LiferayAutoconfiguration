@@ -50,5 +50,4 @@ public class ArticleFactory extends JsonFactory<KbArticle> {
 		}
 		return articles;
 	}
-
 }

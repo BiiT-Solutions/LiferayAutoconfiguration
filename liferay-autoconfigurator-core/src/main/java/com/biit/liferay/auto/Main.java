@@ -500,6 +500,12 @@ public class Main {
 						if (articleStored instanceof KbArticle) {
 							((KbArticle) articleStored).setParentResourceClassNameId(null);
 							((KbArticle) articleStored).setCompanyId(company.getCompanyId());
+							// URL title must start with a '/' and contain only
+							// alphanumeric
+							// characters, dashes, and underscores
+							if (!((KbArticle) articleStored).getUrlTitle().startsWith("/")) {
+								((KbArticle) articleStored).setUrlTitle("/" + ((KbArticle) articleStored).getUrlTitle());
+							}
 						}
 
 						IArticle<Long> articleAdded = articleService.editArticle(articleStored);

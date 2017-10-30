@@ -463,6 +463,9 @@ public class Main {
 
 			for (KbArticle articleToAdd : articles) {
 				articleToAdd.setCompanyId(company.getCompanyId());
+				// Force the recalculation of the parent resource class name by
+				// the webservice.
+				articleToAdd.setParentResourceClassNameId(null);
 				String content = articleToAdd.getContent();
 
 				// Replace image tags with image urls.
@@ -489,7 +492,10 @@ public class Main {
 						// Update article with new content.
 						articleStored.setDescription(articleToAdd.getDescription());
 						articleStored.setContent(articleToAdd.getContent());
-						((KbArticle) articleStored).setCompanyId(company.getCompanyId());
+						if (articleStored instanceof KbArticle) {
+							((KbArticle) articleStored).setParentResourceClassNameId(null);
+							((KbArticle) articleStored).setCompanyId(company.getCompanyId());
+						}
 
 						IArticle<Long> articleAdded = articleService.editArticle(articleStored);
 						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Article '" + articleStored + "' updated.");

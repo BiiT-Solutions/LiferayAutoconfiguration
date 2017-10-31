@@ -374,9 +374,14 @@ public class Main {
 						continue;
 					}
 					if (role == null) {
-						LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid role for role selection '" + roleSelection + "' in '" + userRole
-								+ "'.");
-						continue;
+						LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Role '" + roleSelection
+								+ "' not found in definitions, search it as a Liferay standard role.");
+						role = roleService.getRole(roleSelection.getRole(), company.getId());
+						if (role == null) {
+							LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid role for role selection '" + roleSelection + "' in '" + userRole
+									+ "'.");
+							continue;
+						}
 					}
 					if (roleSelection.getOrganization() == null) {
 						// Generic role.

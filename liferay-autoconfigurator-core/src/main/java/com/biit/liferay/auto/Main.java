@@ -183,7 +183,8 @@ public class Main {
 			return LiferayConfigurationReader.getInstance().getLiferayProtocol() + "://" + LiferayConfigurationReader.getInstance().getHost() + ":"
 					+ LiferayConfigurationReader.getInstance().getConnectionPort();
 		} else {
-			return args[ARG_LIFERAY_SERVER];
+			// Always HTTPS in docker compose.
+			return "https://" + args[ARG_LIFERAY_SERVER];
 		}
 	}
 

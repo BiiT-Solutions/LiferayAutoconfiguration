@@ -387,13 +387,13 @@ public class Main {
 						// Generic role.
 						roleService.addRoleUser(user, role);
 						LiferayAutoconfiguratorLogger.info(Main.class.getName(),
-								"Added role '" + roles.get(roleSelection.getRole()) + "' to user '" + users.get(userRole.getUser()) + "'.");
+								"Added role '" + roleSelection + "' to user '" + users.get(userRole.getUser()) + "'.");
 					} else {
 						// Organization role.
 						roleService.addUserOrganizationRole(user, organizations.get(roleSelection.getOrganization()), role);
 						LiferayAutoconfiguratorLogger.info(
 								Main.class.getName(),
-								"Added role '" + roles.get(roleSelection.getRole()) + "' to user '" + users.get(userRole.getUser()) + "' in '"
+								"Added role '" + roleSelection + "' to user '" + users.get(userRole.getUser()) + "' in '"
 										+ organizations.get(roleSelection.getOrganization()) + "'.");
 					}
 				}

@@ -492,8 +492,6 @@ public class Main {
 				// Check already inserted article.
 				boolean existingArticle = false;
 				for (IArticle<Long> articleStored : articlesStored) {
-					System.out.println(articleStored.getTitle() + " <-> " + articleToAdd.getTitle());
-					System.out.println(((KbArticle) articleStored).getUrlTitle() + " <-> " + articleToAdd.getUrlTitle());
 					// As title is the file name, in this case is unique.
 					if (Objects.equals(articleStored.getTitle(), articleToAdd.getTitle())) {
 						// Update article with new content.

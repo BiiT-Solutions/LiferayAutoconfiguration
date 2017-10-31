@@ -1,6 +1,9 @@
 package com.biit.liferay.auto;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.ArrayList;
@@ -8,7 +11,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -63,6 +68,7 @@ public class Main {
 	private static final String DEFAULT_LIFERAY_ADMIN_USER = "test@liferay.com";
 	private static final String DEFAULT_LIFERAY_ADMIN_PASSWORD = "test";
 	private static final String DEFAULT_LIFERAY_PASSWORD = "asd123";
+	private static final String DEFAULT_DROOLS_ARTICLE_CONFIG_PATH = "/opt/configuration/drools-plugins/";
 
 	private static final int ARG_VIRTUALHOST = 0;
 	private static final int ARG_PASSWORD = 1;
@@ -80,13 +86,16 @@ public class Main {
 	private static final long FOLDER_ID = 0l;
 
 	private static final Pattern pattern = Pattern.compile("\\@\\@.*?\\@\\@");
+	private static final String DROOLS_ARTICLE_CONFIG = "liferay-knowledge-base-[0-9\\\\.]+-jar-with-dependencies\\.conf";
+
+	private static final Properties configuration = new Properties();
 
 	private static Company company;
 	private static Site site;
 
 	/**
 	 * Main method: java -jar liferay-autoconfigurator.jar asd123 localhost
-	 * https://docker.biit-solutions.com/liferay
+	 * pathToDroolsArticleConfig https://docker.biit-solutions.com/liferay
 	 * 
 	 * @param args
 	 *            virtualhost, new user password, liferayServerUrl,
@@ -137,7 +146,10 @@ public class Main {
 				setGuestPermissions(new HashSet<>(images.values()), getPassword(args));
 
 				// Set articles.
-				storeArticles(getVirtualHost(args), getPassword(args), getLiferayServer(args), images);
+				Map<String, IArticle<Long>> articles = storeArticles(getVirtualHost(args), getPassword(args), getLiferayServer(args), images);
+
+				// Set drools liferay article plugin configuration.
+				setDroolsEngineArticleProperties(articles);
 
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Liferay updated correctly!");
 			} else {
@@ -527,5 +539,34 @@ public class Main {
 			articleService.disconnect();
 		}
 		return articlesAdded;
+	}
+
+	private static void setDroolsEngineArticleProperties(Map<String, IArticle<Long>> articles) {
+		for (Entry<String, IArticle<Long>> articleEntry : articles.entrySet()) {
+			configuration.setProperty(articleEntry.getKey(), Long.toString(articleEntry.getValue().getId()));
+		}
+		try {
+			configuration.store(new FileOutputStream(getDroolsEngineArticlePropertiesPath()), null);
+		} catch (FileNotFoundException fne) {
+			LiferayAutoconfiguratorLogger.error(Main.class.getName(), fne.getMessage());
+		} catch (IOException e) {
+			LiferayAutoconfiguratorLogger.errorMessage(Main.class.getName(), e);
+		}
+	}
+
+	private static String getDroolsEngineArticlePropertiesPath() throws FileNotFoundException {
+		File configurationDirectory = new File(DEFAULT_DROOLS_ARTICLE_CONFIG_PATH);
+		File[] files = configurationDirectory.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.matches(DROOLS_ARTICLE_CONFIG);
+			}
+		});
+
+		for (File configFile : files) {
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Found configuration file '" + configFile.getAbsolutePath() + "'.");
+			return configFile.getAbsolutePath();
+		}
+		throw new FileNotFoundException("No file matches '" + DEFAULT_DROOLS_ARTICLE_CONFIG_PATH + "/" + DROOLS_ARTICLE_CONFIG + "'.");
 	}
 }

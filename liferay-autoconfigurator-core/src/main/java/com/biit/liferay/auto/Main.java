@@ -69,6 +69,7 @@ public class Main {
 	private static final String DEFAULT_LIFERAY_ADMIN_PASSWORD = "test";
 	private static final String DEFAULT_LIFERAY_PASSWORD = "asd123";
 	private static final String DEFAULT_DROOLS_ARTICLE_CONFIG_PATH = "/opt/configuration/drools-plugins";
+	private static final String RPROXY_LIFERAY = "/liferay";
 
 	private static final int ARG_VIRTUALHOST = 0;
 	private static final int ARG_PASSWORD = 1;
@@ -181,10 +182,10 @@ public class Main {
 	public static String getLiferayServer(String[] args) {
 		if (args.length <= ARG_LIFERAY_SERVER) {
 			return LiferayConfigurationReader.getInstance().getLiferayProtocol() + "://" + LiferayConfigurationReader.getInstance().getHost() + ":"
-					+ LiferayConfigurationReader.getInstance().getConnectionPort();
+					+ LiferayConfigurationReader.getInstance().getConnectionPort() + RPROXY_LIFERAY;
 		} else {
 			// Always HTTPS in docker compose.
-			return "https://" + args[ARG_LIFERAY_SERVER];
+			return "https://" + args[ARG_LIFERAY_SERVER] + RPROXY_LIFERAY;
 		}
 	}
 

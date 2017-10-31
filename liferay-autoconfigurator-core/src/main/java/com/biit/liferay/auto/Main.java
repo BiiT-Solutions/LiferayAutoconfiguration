@@ -522,7 +522,9 @@ public class Main {
 
 						IArticle<Long> articleAdded = articleService.editArticle(articleStored);
 						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Article '" + articleStored + "' updated.");
-						articlesAdded.put(articleAdded.getUniqueName(), articleAdded);
+						if (articleAdded instanceof KbArticle) {
+							articlesAdded.put(((KbArticle) articleAdded).getUrlTitle().replace("/", ""), articleAdded);
+						}
 						existingArticle = true;
 						break;
 					}

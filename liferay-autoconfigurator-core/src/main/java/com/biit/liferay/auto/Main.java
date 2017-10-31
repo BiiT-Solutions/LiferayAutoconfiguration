@@ -68,7 +68,7 @@ public class Main {
 	private static final String DEFAULT_LIFERAY_ADMIN_USER = "test@liferay.com";
 	private static final String DEFAULT_LIFERAY_ADMIN_PASSWORD = "test";
 	private static final String DEFAULT_LIFERAY_PASSWORD = "asd123";
-	private static final String DEFAULT_DROOLS_ARTICLE_CONFIG_PATH = "/opt/configuration/drools-plugins/";
+	private static final String DEFAULT_DROOLS_ARTICLE_CONFIG_PATH = "/opt/configuration/drools-plugins";
 
 	private static final int ARG_VIRTUALHOST = 0;
 	private static final int ARG_PASSWORD = 1;
@@ -532,7 +532,7 @@ public class Main {
 				if (!existingArticle) {
 					IArticle<Long> articleAdded = articleService.addArticle(articleToAdd, site.getName(), virtualHost);
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added article '" + articleAdded + "'.");
-					articlesAdded.put(articleToAdd.getUniqueName(), articleAdded);
+					articlesAdded.put(articleToAdd.getUrlTitle().replace("/", ""), articleAdded);
 				}
 			}
 		} finally {
@@ -563,9 +563,13 @@ public class Main {
 			}
 		});
 
-		for (File configFile : files) {
-			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Found configuration file '" + configFile.getAbsolutePath() + "'.");
-			return configFile.getAbsolutePath();
+		try {
+			for (File configFile : files) {
+				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Found configuration file '" + configFile.getAbsolutePath() + "'.");
+				return configFile.getAbsolutePath();
+			}
+		} catch (NullPointerException npe) {
+			// Do nothing, use next exception.
 		}
 		throw new FileNotFoundException("No file matches '" + DEFAULT_DROOLS_ARTICLE_CONFIG_PATH + "/" + DROOLS_ARTICLE_CONFIG + "'.");
 	}

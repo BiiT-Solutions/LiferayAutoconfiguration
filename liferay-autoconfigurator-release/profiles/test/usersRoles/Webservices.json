@@ -12,6 +12,10 @@
 		{
 			"role": "usmo_web-service-user",
 			"organization": null
+		},
+		{
+			"role": "Administratror",
+			"organization": null
 		}
 	]
 }

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.biit</groupId>
 	<artifactId>liferay-autoconfigurator</artifactId>
-	<version>0.1.17</version>
+	<version>0.1.18-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Liferay Basic Configuration Creation</name>
 	<description>Add default users, organizations, roles and articles to a newly installed Liferay</description>
@@ -29,7 +29,7 @@
 	<scm>
 		<connection>scm:git:git.biit-solutions.com:LiferayAutoconfigurator.git</connection>
 		<developerConnection>scm:git:git.biit-solutions.com:LiferayAutoconfigurator.git</developerConnection>
-		<tag>liferay-autoconfigurator-0.1.17</tag>
+		<tag>liferay-autoconfigurator</tag>
 	</scm>
 
 	<properties>

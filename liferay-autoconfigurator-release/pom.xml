@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>com.biit</groupId>
 		<artifactId>liferay-autoconfigurator</artifactId>
-		<version>0.1.21-SNAPSHOT</version>
+		<version>0.2.1-SNAPSHOT</version>
 	</parent>
 	
 	<properties>

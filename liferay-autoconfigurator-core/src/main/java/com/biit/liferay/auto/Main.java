@@ -61,7 +61,6 @@ import com.liferay.portal.model.ActionKey;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.Role;
-import com.liferay.portal.model.RoleType;
 import com.liferay.portal.model.Site;
 import com.liferay.portal.model.User;
 
@@ -141,11 +140,6 @@ public class Main {
 
 				// Add roles.
 				Map<String, IRole<Long>> roles = storeRoles(getPassword(args));
-
-				// Add roles to organizations. Not needed or will inherited by
-				// all users.
-				// assignRolesToOrganizations(roles, organizations,
-				// getPassword(args));
 
 				// Add roles to users.
 				assignRolesToUsers(roles, users, organizations, getPassword(args));
@@ -371,19 +365,6 @@ public class Main {
 			roleService.disconnect();
 		}
 		return rolesAdded;
-	}
-
-	private static void assignRolesToOrganizations(Map<String, IRole<Long>> roles, Map<String, IGroup<Long>> organizations, String connectionPassword)
-			throws ClientProtocolException, NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
-		RoleService roleService = new RoleService();
-		roleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
-		for (IRole<Long> role : roles.values()) {
-			if (((Role) role).getType() == RoleType.ORGANIZATION.getLiferayCode()) {
-				roleService.addRoleOrganizations(role, new ArrayList<>(organizations.values()));
-				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Adding organizations '" + organizations + "' to role '" + role + "'.");
-			}
-		}
-		roleService.disconnect();
 	}
 
 	private static void assignRolesToUsers(Map<String, IRole<Long>> roles, Map<String, IUser<Long>> users, Map<String, IGroup<Long>> organizations,

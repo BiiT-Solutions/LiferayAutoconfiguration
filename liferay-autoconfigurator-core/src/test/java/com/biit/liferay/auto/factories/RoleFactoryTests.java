@@ -20,10 +20,10 @@ public class RoleFactoryTests {
 		Assert.assertEquals(roles.size(), ROLES_IN_FOLDER);
 		for (ExtendedRole role : roles) {
 			if (role.getName().equals("base-form-drools_web-service-user")) {
-				Assert.assertNull(roles.get(0).getActivities());
+				Assert.assertNull(role.getActivities());
 				break;
 			} else if (role.getName().equals("usmo_physiotherapist")) {
-				Assert.assertEquals(roles.get(1).getActivities().size(), 25);
+				Assert.assertEquals(role.getActivities().size(), 25);
 				break;
 			}
 			// Not found. test failed.

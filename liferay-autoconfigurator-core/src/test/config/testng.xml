@@ -6,11 +6,13 @@
 			<run>
 				<include name="userFactory" />
 				<include name="articleFactory" />
+				<include name="roleFactory" />
 			</run>
 		</groups>
 		<classes>
 			<class name="com.biit.liferay.auto.factories.UserFactoryTests" />
 			<class name="com.biit.liferay.auto.factories.ArticleFactoryTests" />
+			<class name="com.biit.liferay.auto.factories.RoleFactoryTests" />
 		</classes>
 	</test>
 </suite>

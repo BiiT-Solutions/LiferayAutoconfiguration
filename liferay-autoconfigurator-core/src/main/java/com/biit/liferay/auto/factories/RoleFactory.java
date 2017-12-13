@@ -5,11 +5,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.biit.liferay.auto.model.ExtendedRole;
 import com.biit.liferay.log.LiferayClientLogger;
 import com.biit.utils.file.FileReader;
-import com.liferay.portal.model.Role;
 
-public class RoleFactory extends JsonFactory<Role> {
+public class RoleFactory extends JsonFactory<ExtendedRole> {
 	private final static String RESOURCE_FOLDER = "roles";
 	private static RoleFactory instance;
 
@@ -36,13 +36,13 @@ public class RoleFactory extends JsonFactory<Role> {
 	}
 
 	@Override
-	public List<Role> getElements() {
+	public List<ExtendedRole> getElements() {
 		List<File> definitions = getDefinitions();
-		List<Role> roles = new ArrayList<>();
+		List<ExtendedRole> roles = new ArrayList<>();
 		for (File file : definitions) {
 			try {
 				String fileContent = FileReader.readFile(file);
-				Role role = decodeFromJson(fileContent, Role.class);
+				ExtendedRole role = decodeFromJson(fileContent, ExtendedRole.class);
 				roles.add(role);
 			} catch (IOException e) {
 				LiferayClientLogger.errorMessage(this.getClass().getName(), e);

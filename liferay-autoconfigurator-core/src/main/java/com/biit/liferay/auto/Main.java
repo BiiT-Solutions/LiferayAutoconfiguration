@@ -7,6 +7,7 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +44,7 @@ import com.biit.liferay.auto.factories.RoleFactory;
 import com.biit.liferay.auto.factories.UserFactory;
 import com.biit.liferay.auto.factories.UsersRolesFactory;
 import com.biit.liferay.auto.log.LiferayAutoconfiguratorLogger;
+import com.biit.liferay.auto.model.ExtendedRole;
 import com.biit.liferay.auto.model.RoleSelection;
 import com.biit.liferay.auto.model.UserRole;
 import com.biit.liferay.configuration.LiferayConfigurationReader;
@@ -74,6 +76,8 @@ public class Main {
 	private static final int ARG_VIRTUALHOST = 0;
 	private static final int ARG_PASSWORD = 1;
 	private static final int ARG_LIFERAY_SERVER = 2;
+	private static final int ARG_DROOLS_ARTICLE_FOLDER_PATH = 3;
+	private static final int ARG_USMO_CONFIG_FOLDER_PATH = 4;
 
 	private final static String SITE_NAME = "Autoconfiguration";
 	private final static String SITE_DESCRIPTION = "This site is created with the automatic Liferay configuration tool.";
@@ -87,9 +91,14 @@ public class Main {
 	private static final long FOLDER_ID = 0l;
 
 	private static final Pattern pattern = Pattern.compile("\\@\\@.*?\\@\\@");
-	private static final String DROOLS_ARTICLE_CONFIG = "liferay-knowledge-base-[0-9\\\\.]+-jar-with-dependencies\\.conf";
+	private static final String DROOLS_ARTICLE_CONFIG_PATTERN = "liferay-knowledge-base-[0-9\\\\.]+-jar-with-dependencies\\.conf";
 
-	private static final Properties configuration = new Properties();
+	private static final String USMO_CONFIG_FOLDER = "/opt/configuration/usmo_config/";
+	private static final String ROLE_ACTIVITIES_FILE = "roleActivities.conf";
+	private static final String PERMISSIONS_SUFIX = "permissions";
+	private static final String TRANSLATION_SUFIX = "translation";
+	private static final String GROUP_SUFIX = "group";
+	private static final String CLASSIFICATION_SUFIX = "classification";
 
 	private static Company company;
 	private static Site site;
@@ -100,6 +109,7 @@ public class Main {
 	 * 
 	 * @param args
 	 *            virtualhost, new user password, liferayServerUrl,
+	 *            drools_article_config_folder, usmo_config_folder
 	 */
 	public static void main(String[] args) {
 		try {
@@ -140,6 +150,9 @@ public class Main {
 				// Add roles to users.
 				assignRolesToUsers(roles, users, organizations, getPassword(args));
 
+				// Define activities by roles.
+				defineActivities(roles.values(), getUsmoConfigPath(args));
+
 				// Add images.
 				Map<String, IFileEntry<Long>> images = uploadImages(getPassword(args));
 
@@ -150,7 +163,7 @@ public class Main {
 				Map<String, IArticle<Long>> articles = storeArticles(getVirtualHost(args), getPassword(args), getLiferayServer(args), images);
 
 				// Set drools liferay article plugin configuration.
-				setDroolsEngineArticleProperties(articles);
+				setDroolsEngineArticleProperties(articles, getDroolsArticleConfigPath(args));
 
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Liferay updated correctly!");
 			} else {
@@ -163,7 +176,7 @@ public class Main {
 		System.exit(0);
 	}
 
-	public static String getVirtualHost(String[] args) {
+	private static String getVirtualHost(String[] args) {
 		if (args.length <= ARG_VIRTUALHOST) {
 			return DEFAULT_LIFERAY_VIRTUALHOST;
 		} else {
@@ -171,7 +184,7 @@ public class Main {
 		}
 	}
 
-	public static String getPassword(String[] args) {
+	private static String getPassword(String[] args) {
 		if (args.length <= ARG_PASSWORD) {
 			return DEFAULT_LIFERAY_PASSWORD;
 		} else {
@@ -179,7 +192,7 @@ public class Main {
 		}
 	}
 
-	public static String getLiferayServer(String[] args) {
+	private static String getLiferayServer(String[] args) {
 		if (args.length <= ARG_LIFERAY_SERVER) {
 			return LiferayConfigurationReader.getInstance().getLiferayProtocol() + "://" + LiferayConfigurationReader.getInstance().getHost() + ":"
 					+ LiferayConfigurationReader.getInstance().getConnectionPort() + RPROXY_LIFERAY;
@@ -189,7 +202,23 @@ public class Main {
 		}
 	}
 
-	public static Company getCompany(String companyName, String connectionPassword) throws JsonParseException, JsonMappingException,
+	private static String getDroolsArticleConfigPath(String[] args) {
+		if (args.length <= ARG_DROOLS_ARTICLE_FOLDER_PATH) {
+			return DEFAULT_DROOLS_ARTICLE_CONFIG_PATH;
+		} else {
+			return args[ARG_DROOLS_ARTICLE_FOLDER_PATH];
+		}
+	}
+
+	private static String getUsmoConfigPath(String[] args) {
+		if (args.length <= ARG_USMO_CONFIG_FOLDER_PATH) {
+			return USMO_CONFIG_FOLDER;
+		} else {
+			return args[ARG_USMO_CONFIG_FOLDER_PATH];
+		}
+	}
+
+	private static Company getCompany(String companyName, String connectionPassword) throws JsonParseException, JsonMappingException,
 			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
 		CompanyService companyService = new CompanyService();
 		try {
@@ -202,7 +231,7 @@ public class Main {
 		}
 	}
 
-	public static Site getSite(String connectionPassword) throws JsonParseException, JsonMappingException, NotConnectedToWebServiceException, IOException,
+	private static Site getSite(String connectionPassword) throws JsonParseException, JsonMappingException, NotConnectedToWebServiceException, IOException,
 			AuthenticationRequired, WebServiceAccessError, DuplicatedLiferayElement {
 		SiteService siteService = new SiteService();
 		try {
@@ -221,7 +250,7 @@ public class Main {
 		}
 	}
 
-	public static boolean updateDefaultPassword(String newPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
+	private static boolean updateDefaultPassword(String newPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
 			WebServiceAccessError {
 		UserService userService = new UserService();
 		PasswordService passwordService = new PasswordService();
@@ -241,7 +270,7 @@ public class Main {
 		return false;
 	}
 
-	public static Map<String, IUser<Long>> storeUsers(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
+	private static Map<String, IUser<Long>> storeUsers(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
 			IOException, AuthenticationRequired, WebServiceAccessError, DuplicatedLiferayElement {
 		// Get users from resources profile
 		UserService userService = new UserService();
@@ -275,7 +304,7 @@ public class Main {
 		return usersAdded;
 	}
 
-	public static Map<String, IGroup<Long>> storeOrganizations(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
+	private static Map<String, IGroup<Long>> storeOrganizations(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
 			IOException, AuthenticationRequired, WebServiceAccessError {
 		OrganizationService organizationService = new OrganizationService();
 		organizationService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
@@ -305,7 +334,7 @@ public class Main {
 		return organizationsAdded;
 	}
 
-	public static void assignUsersToOrganizations(Map<String, IUser<Long>> users, Map<String, IGroup<Long>> organizations, String connectionPassword)
+	private static void assignUsersToOrganizations(Map<String, IUser<Long>> users, Map<String, IGroup<Long>> organizations, String connectionPassword)
 			throws ClientProtocolException, IOException, NotConnectedToWebServiceException, AuthenticationRequired {
 		OrganizationService organizationService = new OrganizationService();
 		organizationService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
@@ -316,11 +345,11 @@ public class Main {
 		organizationService.disconnect();
 	}
 
-	public static Map<String, IRole<Long>> storeRoles(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
+	private static Map<String, IRole<Long>> storeRoles(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
 			IOException, AuthenticationRequired, WebServiceAccessError {
 		RoleService roleService = new RoleService();
 		roleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
-		List<Role> roles = RoleFactory.getInstance().getElements();
+		List<ExtendedRole> roles = RoleFactory.getInstance().getElements();
 		LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Roles to add '" + roles.size() + "'.");
 		Map<String, IRole<Long>> rolesAdded = new HashMap<>();
 		try {
@@ -344,7 +373,7 @@ public class Main {
 		return rolesAdded;
 	}
 
-	public static void assignRolesToOrganizations(Map<String, IRole<Long>> roles, Map<String, IGroup<Long>> organizations, String connectionPassword)
+	private static void assignRolesToOrganizations(Map<String, IRole<Long>> roles, Map<String, IGroup<Long>> organizations, String connectionPassword)
 			throws ClientProtocolException, NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
 		RoleService roleService = new RoleService();
 		roleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
@@ -357,7 +386,7 @@ public class Main {
 		roleService.disconnect();
 	}
 
-	public static void assignRolesToUsers(Map<String, IRole<Long>> roles, Map<String, IUser<Long>> users, Map<String, IGroup<Long>> organizations,
+	private static void assignRolesToUsers(Map<String, IRole<Long>> roles, Map<String, IUser<Long>> users, Map<String, IGroup<Long>> organizations,
 			String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException, AuthenticationRequired,
 			WebServiceAccessError {
 		List<UserRole> usersRoles = UsersRolesFactory.getInstance().getElements();
@@ -386,15 +415,13 @@ public class Main {
 					if (roleSelection.getOrganization() == null) {
 						// Generic role.
 						roleService.addRoleUser(user, role);
-						LiferayAutoconfiguratorLogger.info(Main.class.getName(),
-								"Added role '" + roleSelection + "' to user '" + users.get(userRole.getUser()) + "'.");
+						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added role '" + roleSelection + "' to user '" + users.get(userRole.getUser())
+								+ "'.");
 					} else {
 						// Organization role.
 						roleService.addUserOrganizationRole(user, organizations.get(roleSelection.getOrganization()), role);
-						LiferayAutoconfiguratorLogger.info(
-								Main.class.getName(),
-								"Added role '" + roleSelection + "' to user '" + users.get(userRole.getUser()) + "' in '"
-										+ organizations.get(roleSelection.getOrganization()) + "'.");
+						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added role '" + roleSelection + "' to user '" + users.get(userRole.getUser())
+								+ "' in '" + organizations.get(roleSelection.getOrganization()) + "'.");
 					}
 				}
 			}
@@ -403,7 +430,7 @@ public class Main {
 		}
 	}
 
-	public static Map<String, IFileEntry<Long>> uploadImages(String connectionPassword) throws ClientProtocolException, IOException,
+	private static Map<String, IFileEntry<Long>> uploadImages(String connectionPassword) throws ClientProtocolException, IOException,
 			NotConnectedToWebServiceException, AuthenticationRequired, WebServiceAccessError {
 		Map<String, IFileEntry<Long>> imagesUploaded = new HashMap<>();
 		List<File> images = ImageFactory.getInstance().getElements();
@@ -434,7 +461,7 @@ public class Main {
 		return imagesUploaded;
 	}
 
-	public static void setGuestPermissions(Set<IFileEntry<Long>> images, String connectionPassword) throws ClientProtocolException,
+	private static void setGuestPermissions(Set<IFileEntry<Long>> images, String connectionPassword) throws ClientProtocolException,
 			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
 		ResourcePermissionService resourcePermissionsService = new ResourcePermissionService();
 		resourcePermissionsService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
@@ -466,7 +493,7 @@ public class Main {
 		}
 	}
 
-	public static Map<String, IArticle<Long>> storeArticles(String virtualHost, String connectionPassword, String liferayServerUrl,
+	private static Map<String, IArticle<Long>> storeArticles(String virtualHost, String connectionPassword, String liferayServerUrl,
 			Map<String, IFileEntry<Long>> existingImages) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
 			AuthenticationRequired, WebServiceAccessError {
 		// Get users from resources profile
@@ -520,8 +547,7 @@ public class Main {
 							((KbArticle) articleStored).setParentResourceClassNameId(null);
 							((KbArticle) articleStored).setCompanyId(company.getCompanyId());
 							// URL title must start with a '/' and contain only
-							// alphanumeric
-							// characters, dashes, and underscores
+							// alphanumeric characters, dashes, and underscores
 							if (!((KbArticle) articleStored).getUrlTitle().startsWith("/")) {
 								((KbArticle) articleStored).setUrlTitle("/" + ((KbArticle) articleStored).getUrlTitle());
 							}
@@ -550,12 +576,13 @@ public class Main {
 		return articlesAdded;
 	}
 
-	private static void setDroolsEngineArticleProperties(Map<String, IArticle<Long>> articles) {
+	private static void setDroolsEngineArticleProperties(Map<String, IArticle<Long>> articles, String droolsArticleConfigPath) {
+		Properties droolsArticleConfiguration = new Properties();
 		for (Entry<String, IArticle<Long>> articleEntry : articles.entrySet()) {
-			configuration.setProperty(articleEntry.getKey(), Long.toString(articleEntry.getValue().getId()));
+			droolsArticleConfiguration.setProperty(articleEntry.getKey(), Long.toString(articleEntry.getValue().getId()));
 		}
 		try {
-			configuration.store(new FileOutputStream(getDroolsEngineArticlePropertiesPath()), null);
+			droolsArticleConfiguration.store(new FileOutputStream(getDroolsEngineArticlePropertiesPath(droolsArticleConfigPath)), null);
 		} catch (FileNotFoundException fne) {
 			LiferayAutoconfiguratorLogger.error(Main.class.getName(), fne.getMessage());
 		} catch (IOException e) {
@@ -563,12 +590,44 @@ public class Main {
 		}
 	}
 
-	private static String getDroolsEngineArticlePropertiesPath() throws FileNotFoundException {
-		File configurationDirectory = new File(DEFAULT_DROOLS_ARTICLE_CONFIG_PATH);
+	private static String getDroolsEngineArticlePropertiesPath(String droolsArticleConfigPath) throws FileNotFoundException {
+		return getPropertiesPath(droolsArticleConfigPath, DROOLS_ARTICLE_CONFIG_PATTERN);
+	}
+
+	private static void defineActivities(Collection<IRole<Long>> roles, String usmoConfigPath) {
+		Properties roleActivitiesConfiguration = new Properties();
+		for (IRole<Long> role : roles) {
+			ExtendedRole extendedRole = (ExtendedRole) role;
+			if (extendedRole.getActivities() != null && !extendedRole.getActivities().isEmpty()) {
+				roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,
+						extendedRole.getActivities().toString().replace("[", "").replace("]", ""));
+			}
+			if (extendedRole.getTranslation() != null && !extendedRole.getTranslation().isEmpty()) {
+				roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX, extendedRole.getTranslation());
+			}
+			if (extendedRole.getGroup() != null && !extendedRole.getGroup().isEmpty()) {
+				roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + GROUP_SUFIX, extendedRole.getGroup());
+			}
+			if (extendedRole.getClassification() != null && !extendedRole.getClassification().isEmpty()) {
+				roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX, extendedRole.getClassification());
+			}
+		}
+
+		try {
+			roleActivitiesConfiguration.store(new FileOutputStream(usmoConfigPath + File.separator + ROLE_ACTIVITIES_FILE), null);
+		} catch (FileNotFoundException fne) {
+			LiferayAutoconfiguratorLogger.error(Main.class.getName(), fne.getMessage());
+		} catch (IOException e) {
+			LiferayAutoconfiguratorLogger.errorMessage(Main.class.getName(), e);
+		}
+	}
+
+	private static String getPropertiesPath(final String path, final String fileRegex) throws FileNotFoundException {
+		File configurationDirectory = new File(path);
 		File[] files = configurationDirectory.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
-				return name.matches(DROOLS_ARTICLE_CONFIG);
+				return name.matches(fileRegex);
 			}
 		});
 
@@ -580,6 +639,6 @@ public class Main {
 		} catch (NullPointerException npe) {
 			// Do nothing, use next exception.
 		}
-		throw new FileNotFoundException("No file matches '" + DEFAULT_DROOLS_ARTICLE_CONFIG_PATH + "/" + DROOLS_ARTICLE_CONFIG + "'.");
+		throw new FileNotFoundException("No file matches '" + path + "/" + fileRegex + "'.");
 	}
 }

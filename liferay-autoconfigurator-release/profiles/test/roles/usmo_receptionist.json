@@ -7,5 +7,9 @@
   "descriptionCurrentValue": "",
   "modifiedDate": 1507118514000,
   "subtype": "",
-  "type": 3
+  "type": 3,
+  "activities": ["read", "edit_own_data", "appointments_manager", "create_appointments", "see_all_appointments", "edit_not_started_appointments", "resend_report", "download_report", "assign_task", "see_all_tasks", "see_unassigned_tasks", "see_all_roles", "remove_unassigned_tasks", "edit_receptionist_profile", "add_patients", "edit_patients", "remove_patients", "generate_invoice", "read_invoice", "cancel_own_appointments", "cancel_any_appointments", "remove_appointments", "no_show", "no_show_any_appointment", "agenda", "see_doctors_in_appointments"],
+  "classification": "receptionist",
+  "group": "assignment",
+  "translation": "role.receptionist"
 }

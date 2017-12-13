@@ -7,5 +7,7 @@
   "descriptionCurrentValue": "",
   "modifiedDate": 1507118514000,
   "subtype": "",
-  "type": 1
+  "type": 1,
+  "activities": ["use_web_service"],
+  "group": "security-role"
 }

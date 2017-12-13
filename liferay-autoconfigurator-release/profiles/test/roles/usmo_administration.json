@@ -7,5 +7,8 @@
   "description": "",
   "descriptionCurrentValue": "",
   "modifiedDate": 1507118514000,  
-  "subtype": ""
+  "subtype": "",
+  "activities": ["read", "edit_own_data", "evict_cache", "autofill_configuration", "impersonate"],
+  "group": "assignment",
+  "translation": "role.admin"
 }

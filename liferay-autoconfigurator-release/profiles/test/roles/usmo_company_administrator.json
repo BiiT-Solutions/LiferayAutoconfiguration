@@ -7,5 +7,8 @@
   "description": "",
   "descriptionCurrentValue": "",
   "modifiedDate": 1507118514000,  
-  "subtype": ""
+  "subtype": "",
+  "activities": ["read", "edit_own_data", "configure_company", "company_manager", "add_company", "delete_company", "edit_company", "view_contracts", "edit_contracts", "add_company_patients", "edit_company_patients", "remove_company_patients", "design_company_hr_report"],
+  "group": "assignment",
+  "translation": "role.company.admin"
 }

@@ -7,5 +7,8 @@
   "descriptionCurrentValue": "",
   "modifiedDate": 1507118514000,
   "subtype": "",
-  "type": 3
+  "type": 3,
+  "activities": ["read", "edit_own_data", "change_examination_texts", "define_examination_forms", "edit_examination_types", "configure_organization", "anamnese_version_column", "report_version_column", "dashboard", "assign_doctor_specialty"],
+  "group": "assignment",
+  "translation": "role.organization.admin"
 }

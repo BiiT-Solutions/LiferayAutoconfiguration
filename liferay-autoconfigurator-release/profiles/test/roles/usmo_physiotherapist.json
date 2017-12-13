@@ -7,5 +7,9 @@
   "descriptionCurrentValue": "",
   "modifiedDate": 1507118514000,
   "subtype": "",
-  "type": 3
+  "type": 3,
+  "activities": ["read", "edit_own_data", "appointments_manager", "examinate_patient", "see_all_appointments", "see_doctors_in_appointments", "see_own_appointments", "edit_anamnesis", "view_anamnesis", "see_unassigned_tasks", "edit_doctor_profile", "edit_patients", "cancel_own_appointments", "resend_report", "download_report", "no_show", "agenda_click", "edit_finished_appointments", "agenda", "report", "anamnese", "finish_examination", "change_examinations", "send_messages_to_patient", "show_patient_corrective_exercises"],
+  "classification": "specialist",
+  "group": "assignment",
+  "translation": "role.doctor"
 }

@@ -157,7 +157,7 @@ public class Main {
 				LiferayAutoconfiguratorLogger.error(Main.class.getName(), "No company found. Check your configuration.");
 				System.exit(-1);
 			}
-		} catch (NotConnectedToWebServiceException | IOException | AuthenticationRequired | WebServiceAccessError e) {
+		} catch (NotConnectedToWebServiceException | IOException | AuthenticationRequired | WebServiceAccessError | DuplicatedLiferayElement e) {
 			LiferayAutoconfiguratorLogger.errorMessage(Main.class.getName(), e);
 		}
 		System.exit(0);
@@ -203,7 +203,7 @@ public class Main {
 	}
 
 	public static Site getSite(String connectionPassword) throws JsonParseException, JsonMappingException, NotConnectedToWebServiceException, IOException,
-			AuthenticationRequired, WebServiceAccessError {
+			AuthenticationRequired, WebServiceAccessError, DuplicatedLiferayElement {
 		SiteService siteService = new SiteService();
 		try {
 			siteService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
@@ -242,7 +242,7 @@ public class Main {
 	}
 
 	public static Map<String, IUser<Long>> storeUsers(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
-			IOException, AuthenticationRequired, WebServiceAccessError {
+			IOException, AuthenticationRequired, WebServiceAccessError, DuplicatedLiferayElement {
 		// Get users from resources profile
 		UserService userService = new UserService();
 		userService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);

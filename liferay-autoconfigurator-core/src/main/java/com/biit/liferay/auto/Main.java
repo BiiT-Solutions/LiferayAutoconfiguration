@@ -69,14 +69,13 @@ public class Main {
 	private static final String DEFAULT_LIFERAY_ADMIN_USER = "test@liferay.com";
 	private static final String DEFAULT_LIFERAY_ADMIN_PASSWORD = "test";
 	private static final String DEFAULT_LIFERAY_PASSWORD = "asd123";
+	private static final String DROOLS_PLUGIN_ENV_VARIABLE = "DROOLS_PLUGIN_CONFIGURATION_FOLDER";
 	private static final String DEFAULT_DROOLS_ARTICLE_CONFIG_PATH = "/opt/configuration/drools-plugins";
 	private static final String RPROXY_LIFERAY = "/liferay";
 
 	private static final int ARG_VIRTUALHOST = 0;
 	private static final int ARG_PASSWORD = 1;
 	private static final int ARG_LIFERAY_SERVER = 2;
-	private static final int ARG_DROOLS_ARTICLE_FOLDER_PATH = 3;
-	private static final int ARG_USMO_CONFIG_FOLDER_PATH = 4;
 
 	private final static String SITE_NAME = "Autoconfiguration";
 	private final static String SITE_DESCRIPTION = "This site is created with the automatic Liferay configuration tool.";
@@ -92,7 +91,8 @@ public class Main {
 	private static final Pattern pattern = Pattern.compile("\\@\\@.*?\\@\\@");
 	private static final String DROOLS_ARTICLE_CONFIG_PATTERN = "liferay-knowledge-base-[0-9\\\\.]+-jar-with-dependencies\\.conf";
 
-	private static final String USMO_CONFIG_FOLDER = "/opt/configuration/usmo_config/";
+	private static final String USMO_CONFIG_ENV_VARIABLE = "USMO_CONFIGURATION_FOLDER";
+	private static final String DEFAULT_USMO_CONFIG_FOLDER = "/opt/configuration/usmo_config/";
 	private static final String ROLE_ACTIVITIES_FILE = "roleActivities.conf";
 	private static final String PERMISSIONS_SUFIX = "permissions";
 	private static final String TRANSLATION_SUFIX = "translation";
@@ -107,8 +107,7 @@ public class Main {
 	 * pathToDroolsArticleConfig https://docker.biit-solutions.com/liferay
 	 * 
 	 * @param args
-	 *            virtualhost, new user password, liferayServerUrl,
-	 *            drools_article_config_folder, usmo_config_folder
+	 *            virtualhost, new user password, liferayServerUrl
 	 */
 	public static void main(String[] args) {
 		try {
@@ -145,7 +144,7 @@ public class Main {
 				assignRolesToUsers(roles, users, organizations, getPassword(args));
 
 				// Define activities by roles.
-				defineActivities(roles.values(), getUsmoConfigPath(args));
+				defineRoleActivities(roles.values(), readEnvironmentVariable(USMO_CONFIG_ENV_VARIABLE, DEFAULT_USMO_CONFIG_FOLDER));
 
 				// Add images.
 				Map<String, IFileEntry<Long>> images = uploadImages(getPassword(args));
@@ -157,7 +156,7 @@ public class Main {
 				Map<String, IArticle<Long>> articles = storeArticles(getVirtualHost(args), getPassword(args), getLiferayServer(args), images);
 
 				// Set drools liferay article plugin configuration.
-				setDroolsEngineArticleProperties(articles, getDroolsArticleConfigPath(args));
+				setDroolsEngineArticleProperties(articles, readEnvironmentVariable(DROOLS_PLUGIN_ENV_VARIABLE, DEFAULT_DROOLS_ARTICLE_CONFIG_PATH));
 
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Liferay updated correctly!");
 			} else {
@@ -193,22 +192,6 @@ public class Main {
 		} else {
 			// Always HTTPS in docker compose.
 			return "https://" + args[ARG_LIFERAY_SERVER] + RPROXY_LIFERAY;
-		}
-	}
-
-	private static String getDroolsArticleConfigPath(String[] args) {
-		if (args.length <= ARG_DROOLS_ARTICLE_FOLDER_PATH) {
-			return DEFAULT_DROOLS_ARTICLE_CONFIG_PATH;
-		} else {
-			return args[ARG_DROOLS_ARTICLE_FOLDER_PATH];
-		}
-	}
-
-	private static String getUsmoConfigPath(String[] args) {
-		if (args.length <= ARG_USMO_CONFIG_FOLDER_PATH) {
-			return USMO_CONFIG_FOLDER;
-		} else {
-			return args[ARG_USMO_CONFIG_FOLDER_PATH];
 		}
 	}
 
@@ -575,7 +558,7 @@ public class Main {
 		return getPropertiesPath(droolsArticleConfigPath, DROOLS_ARTICLE_CONFIG_PATTERN);
 	}
 
-	private static void defineActivities(Collection<IRole<Long>> roles, String usmoConfigPath) {
+	private static void defineRoleActivities(Collection<IRole<Long>> roles, String usmoConfigPath) {
 		Properties roleActivitiesConfiguration = new Properties();
 		for (IRole<Long> role : roles) {
 			ExtendedRole extendedRole = (ExtendedRole) role;
@@ -595,6 +578,9 @@ public class Main {
 		}
 
 		try {
+			// Create file if it does not exists.
+			File yourFile = new File(usmoConfigPath + File.separator + ROLE_ACTIVITIES_FILE);
+			yourFile.createNewFile(); // if file already exists will do nothing
 			roleActivitiesConfiguration.store(new FileOutputStream(usmoConfigPath + File.separator + ROLE_ACTIVITIES_FILE), null);
 		} catch (FileNotFoundException fne) {
 			LiferayAutoconfiguratorLogger.error(Main.class.getName(), fne.getMessage());
@@ -621,5 +607,14 @@ public class Main {
 			// Do nothing, use next exception.
 		}
 		throw new FileNotFoundException("No file matches '" + path + "/" + fileRegex + "'.");
+	}
+
+	public static String readEnvironmentVariable(String environmentVariable, String defaultValue) {
+		Map<String, String> env = System.getenv();
+		String value = env.get(environmentVariable);
+		if (value == null || value.isEmpty()) {
+			return defaultValue;
+		}
+		return value;
 	}
 }

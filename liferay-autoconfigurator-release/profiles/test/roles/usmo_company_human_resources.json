@@ -1,0 +1,14 @@
+{
+  "title": "Usmo Company Human Resources",
+  "titleCurrentValue": "Usmo Company Human Resources",
+  "name": "usmo_company_human_resources",
+  "createDate": 1507118514000,
+  "description": "",
+  "descriptionCurrentValue": "",
+  "modifiedDate": 1507118514000,
+  "subtype": "",
+  "type": 3,
+  "activities": ["read", "edit_own_data", "company_report_manager"],
+  "group": "assignment",
+  "translation": "role.company.human.resources"
+}

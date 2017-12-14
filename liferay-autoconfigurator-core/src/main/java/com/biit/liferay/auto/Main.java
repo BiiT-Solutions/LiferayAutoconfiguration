@@ -60,7 +60,6 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.liferay.portal.model.ActionKey;
 import com.liferay.portal.model.Company;
 import com.liferay.portal.model.Organization;
-import com.liferay.portal.model.Role;
 import com.liferay.portal.model.Site;
 import com.liferay.portal.model.User;
 
@@ -561,11 +560,11 @@ public class Main {
 	private static void defineRoleActivities(Collection<IRole<Long>> roles, String usmoConfigPath) {
 		Properties roleActivitiesConfiguration = new Properties();
 		for (IRole<Long> role : roles) {
-			if (!(role instanceof ExtendedRole)) {
+			ExtendedRole extendedRole = RoleFactory.getInstance().getElement(role);
+			if (extendedRole == null) {
 				LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Role '" + role + "' has no activities defined!");
 				continue;
 			}
-			ExtendedRole extendedRole = (ExtendedRole) role;
 			if (extendedRole.getActivities() != null && !extendedRole.getActivities().isEmpty()) {
 				roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,
 						extendedRole.getActivities().toString().replace("[", "").replace("]", ""));

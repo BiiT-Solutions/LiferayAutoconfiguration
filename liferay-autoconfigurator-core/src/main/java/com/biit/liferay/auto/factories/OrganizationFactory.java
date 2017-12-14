@@ -12,6 +12,7 @@ import com.liferay.portal.model.Organization;
 public class OrganizationFactory extends JsonFactory<Organization> {
 	private final static String RESOURCE_FOLDER = "organizations";
 	private static OrganizationFactory instance;
+	private List<Organization> organizations;
 
 	private static void createInstance() {
 		if (instance == null) {
@@ -37,15 +38,17 @@ public class OrganizationFactory extends JsonFactory<Organization> {
 
 	@Override
 	public List<Organization> getElements() {
-		List<File> definitions = getDefinitions();
-		List<Organization> organizations = new ArrayList<>();
-		for (File file : definitions) {
-			try {
-				String fileContent = FileReader.readFile(file);
-				Organization organization = decodeFromJson(fileContent, Organization.class);
-				organizations.add(organization);
-			} catch (IOException e) {
-				LiferayClientLogger.errorMessage(this.getClass().getName(), e);
+		if (organizations == null) {
+			List<File> definitions = getDefinitions();
+			organizations = new ArrayList<>();
+			for (File file : definitions) {
+				try {
+					String fileContent = FileReader.readFile(file);
+					Organization organization = decodeFromJson(fileContent, Organization.class);
+					organizations.add(organization);
+				} catch (IOException e) {
+					LiferayClientLogger.errorMessage(this.getClass().getName(), e);
+				}
 			}
 		}
 		return organizations;

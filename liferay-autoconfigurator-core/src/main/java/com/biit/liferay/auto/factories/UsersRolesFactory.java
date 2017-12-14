@@ -12,6 +12,7 @@ import com.biit.utils.file.FileReader;
 public class UsersRolesFactory extends JsonFactory<UserRole> {
 	private final static String RESOURCE_FOLDER = "usersRoles";
 	private static UsersRolesFactory instance;
+	private List<UserRole> usersroles;
 
 	private static void createInstance() {
 		if (instance == null) {
@@ -37,18 +38,19 @@ public class UsersRolesFactory extends JsonFactory<UserRole> {
 
 	@Override
 	public List<UserRole> getElements() {
-		List<File> definitions = getDefinitions();
-		List<UserRole> usersroles = new ArrayList<>();
-		for (File file : definitions) {
-			try {
-				String fileContent = FileReader.readFile(file);
-				UserRole role = decodeFromJson(fileContent, UserRole.class);
-				usersroles.add(role);
-			} catch (IOException e) {
-				LiferayClientLogger.errorMessage(this.getClass().getName(), e);
+		if (usersroles == null) {
+			List<File> definitions = getDefinitions();
+			usersroles = new ArrayList<>();
+			for (File file : definitions) {
+				try {
+					String fileContent = FileReader.readFile(file);
+					UserRole role = decodeFromJson(fileContent, UserRole.class);
+					usersroles.add(role);
+				} catch (IOException e) {
+					LiferayClientLogger.errorMessage(this.getClass().getName(), e);
+				}
 			}
 		}
 		return usersroles;
 	}
-
 }

@@ -12,6 +12,7 @@ import com.biit.utils.file.FileReader;
 public class ArticleFactory extends JsonFactory<KbArticle> {
 	private final static String RESOURCE_FOLDER = "articles";
 	private static ArticleFactory instance;
+	private List<KbArticle> articles;
 
 	private static void createInstance() {
 		if (instance == null) {
@@ -37,15 +38,17 @@ public class ArticleFactory extends JsonFactory<KbArticle> {
 
 	@Override
 	public List<KbArticle> getElements() {
-		List<File> definitions = getDefinitions();
-		List<KbArticle> articles = new ArrayList<>();
-		for (File file : definitions) {
-			try {
-				String fileContent = FileReader.readFile(file);
-				KbArticle article = decodeFromJson(fileContent, KbArticle.class);
-				articles.add(article);
-			} catch (IOException e) {
-				LiferayClientLogger.errorMessage(this.getClass().getName(), e);
+		if (articles == null) {
+			List<File> definitions = getDefinitions();
+			articles = new ArrayList<>();
+			for (File file : definitions) {
+				try {
+					String fileContent = FileReader.readFile(file);
+					KbArticle article = decodeFromJson(fileContent, KbArticle.class);
+					articles.add(article);
+				} catch (IOException e) {
+					LiferayClientLogger.errorMessage(this.getClass().getName(), e);
+				}
 			}
 		}
 		return articles;

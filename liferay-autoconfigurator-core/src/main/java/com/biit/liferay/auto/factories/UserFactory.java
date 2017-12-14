@@ -12,6 +12,7 @@ import com.liferay.portal.model.User;
 public class UserFactory extends JsonFactory<User> {
 	private final static String RESOURCE_FOLDER = "users";
 	private static UserFactory instance;
+	private List<User> users;
 
 	private static void createInstance() {
 		if (instance == null) {
@@ -37,15 +38,17 @@ public class UserFactory extends JsonFactory<User> {
 
 	@Override
 	public List<User> getElements() {
-		List<File> definitions = getDefinitions();
-		List<User> users = new ArrayList<>();
-		for (File file : definitions) {
-			try {
-				String fileContent = FileReader.readFile(file);
-				User user = decodeFromJson(fileContent, User.class);
-				users.add(user);
-			} catch (IOException e) {
-				LiferayClientLogger.errorMessage(this.getClass().getName(), e);
+		if (users == null) {
+			List<File> definitions = getDefinitions();
+			users = new ArrayList<>();
+			for (File file : definitions) {
+				try {
+					String fileContent = FileReader.readFile(file);
+					User user = decodeFromJson(fileContent, User.class);
+					users.add(user);
+				} catch (IOException e) {
+					LiferayClientLogger.errorMessage(this.getClass().getName(), e);
+				}
 			}
 		}
 		return users;

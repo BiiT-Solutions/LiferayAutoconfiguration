@@ -330,7 +330,7 @@ public class Main {
 		LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Roles to add '" + roles.size() + "'.");
 		Map<String, IRole<Long>> rolesAdded = new HashMap<>();
 		try {
-			for (Role role : roles) {
+			for (ExtendedRole role : roles) {
 				role.setCompanyId(company.getCompanyId());
 				try {
 					IRole<Long> roleAdded = roleService.addRole(role);
@@ -561,6 +561,10 @@ public class Main {
 	private static void defineRoleActivities(Collection<IRole<Long>> roles, String usmoConfigPath) {
 		Properties roleActivitiesConfiguration = new Properties();
 		for (IRole<Long> role : roles) {
+			if (!(role instanceof ExtendedRole)) {
+				LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Role '" + role + "' has no activities defined!");
+				continue;
+			}
 			ExtendedRole extendedRole = (ExtendedRole) role;
 			if (extendedRole.getActivities() != null && !extendedRole.getActivities().isEmpty()) {
 				roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,

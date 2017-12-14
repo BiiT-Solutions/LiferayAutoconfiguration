@@ -55,6 +55,7 @@ import com.biit.usermanager.entity.IGroup;
 import com.biit.usermanager.entity.IRole;
 import com.biit.usermanager.entity.IUser;
 import com.biit.usermanager.security.exceptions.AuthenticationRequired;
+import com.biit.utils.configuration.SortedProperties;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.liferay.portal.model.ActionKey;
@@ -540,9 +541,11 @@ public class Main {
 	}
 
 	private static void setDroolsEngineArticleProperties(Map<String, IArticle<Long>> articles, String droolsArticleConfigPath) {
-		Properties droolsArticleConfiguration = new Properties();
+		Properties droolsArticleConfiguration = new SortedProperties();
 		for (Entry<String, IArticle<Long>> articleEntry : articles.entrySet()) {
 			droolsArticleConfiguration.setProperty(articleEntry.getKey(), Long.toString(articleEntry.getValue().getId()));
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+					"Added article id '" + articleEntry.getValue().getId() + "' to article '" + articleEntry.getKey() + "'.");
 		}
 		try {
 			droolsArticleConfiguration.store(new FileOutputStream(getDroolsEngineArticlePropertiesPath(droolsArticleConfigPath)), null);
@@ -558,7 +561,7 @@ public class Main {
 	}
 
 	private static void defineRoleActivities(Collection<IRole<Long>> roles, String usmoConfigPath) {
-		Properties roleActivitiesConfiguration = new Properties();
+		Properties roleActivitiesConfiguration = new SortedProperties();
 		for (IRole<Long> role : roles) {
 			ExtendedRole extendedRole = RoleFactory.getInstance().getElement(role);
 			if (extendedRole == null) {
@@ -567,6 +570,7 @@ public class Main {
 			}
 			if (extendedRole.getActivities() != null && !extendedRole.getActivities().isEmpty()) {
 				roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,
+				// Convert array to string without brackets.
 						extendedRole.getActivities().toString().replace("[", "").replace("]", ""));
 			}
 			if (extendedRole.getTranslation() != null && !extendedRole.getTranslation().isEmpty()) {
@@ -578,6 +582,7 @@ public class Main {
 			if (extendedRole.getClassification() != null && !extendedRole.getClassification().isEmpty()) {
 				roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX, extendedRole.getClassification());
 			}
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added activities '" + extendedRole.getActivities() + "' to role '" + role + "'.");
 		}
 
 		try {

@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>com.biit</groupId>
 		<artifactId>liferay-autoconfigurator</artifactId>
-		<version>0.2.6</version>
+		<version>0.2.7-SNAPSHOT</version>
 	</parent>
 
 	<build>

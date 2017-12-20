@@ -8,7 +8,7 @@
   "modifiedDate": 1507118514000,
   "subtype": "",
   "type": 3,
-  "activities": ["read", "edit_own_data", "company_report_manager", "company_patient_manager", "add_company_patients", "edit_company_patients", "remove_company_patients", "view_contracts", "edit_human_resources_profile"],
+  "activities": ["read", "edit_own_data", "company_report_manager", "company_patient_manager", "view_contracts", "edit_human_resources_profile"],
   "group": "assignment",
   "translation": "role.company.human.resources"
 }

@@ -55,6 +55,7 @@ import com.biit.usermanager.entity.IGroup;
 import com.biit.usermanager.entity.IRole;
 import com.biit.usermanager.entity.IUser;
 import com.biit.usermanager.security.exceptions.AuthenticationRequired;
+import com.biit.usermanager.security.exceptions.UserDoesNotExistException;
 import com.biit.utils.configuration.SortedProperties;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -163,7 +164,8 @@ public class Main {
 				LiferayAutoconfiguratorLogger.error(Main.class.getName(), "No company found. Check your configuration.");
 				System.exit(-1);
 			}
-		} catch (NotConnectedToWebServiceException | IOException | AuthenticationRequired | WebServiceAccessError | DuplicatedLiferayElement e) {
+		} catch (NotConnectedToWebServiceException | IOException | AuthenticationRequired | WebServiceAccessError | DuplicatedLiferayElement
+				| UserDoesNotExistException e) {
 			LiferayAutoconfiguratorLogger.errorMessage(Main.class.getName(), e);
 		}
 		System.exit(0);
@@ -228,7 +230,7 @@ public class Main {
 	}
 
 	private static boolean updateDefaultPassword(String newPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
-			WebServiceAccessError {
+			WebServiceAccessError, UserDoesNotExistException {
 		UserService userService = new UserService();
 		PasswordService passwordService = new PasswordService();
 		try {
@@ -268,9 +270,14 @@ public class Main {
 				} catch (WebServiceAccessError dusne) {
 					if (dusne.getMessage().contains("com.liferay.portal.DuplicateUserScreenNameException")) {
 						LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists an user with screen name '" + user.getScreenName() + "'. ");
-						IUser<Long> existingUser = userService.getUserByEmailAddress(company, user.getEmailAddress());
-						if (existingUser != null) {
-							usersAdded.put(existingUser.getUniqueName(), existingUser);
+						IUser<Long> existingUser;
+						try {
+							existingUser = userService.getUserByEmailAddress(company, user.getEmailAddress());
+							if (existingUser != null) {
+								usersAdded.put(existingUser.getUniqueName(), existingUser);
+							}
+						} catch (UserDoesNotExistException e) {
+							// Do nothing
 						}
 					}
 				}

@@ -332,7 +332,7 @@ public class Main {
 					}
 				}
 			}
-			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Adding users '" + users + "' to organization '" + organization + "'.");
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Adding users '" + usersInOrganization + "' to organization '" + organization + "'.");
 			organizationService.addUsersToOrganization(new ArrayList<>(usersInOrganization), organization);
 		}
 

@@ -320,10 +320,22 @@ public class Main {
 			throws ClientProtocolException, IOException, NotConnectedToWebServiceException, AuthenticationRequired {
 		OrganizationService organizationService = new OrganizationService();
 		organizationService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
+		List<UserRole> usersRoles = UsersRolesFactory.getInstance().getElements();
 		for (IGroup<Long> organization : organizations.values()) {
+			Set<IUser<Long>> usersInOrganization = new HashSet<>();
+			// If has a role in a organization, add to it.
+			for (UserRole usersRole : usersRoles) {
+				for (RoleSelection role : usersRole.getRoles()) {
+					if (role.getOrganization().equals(organization.getUniqueName())) {
+						usersInOrganization.add(users.get(usersRole.getUser()));
+						break;
+					}
+				}
+			}
 			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Adding users '" + users + "' to organization '" + organization + "'.");
-			organizationService.addUsersToOrganization(new ArrayList<>(users.values()), organization);
+			organizationService.addUsersToOrganization(new ArrayList<>(usersInOrganization), organization);
 		}
+
 		organizationService.disconnect();
 	}
 

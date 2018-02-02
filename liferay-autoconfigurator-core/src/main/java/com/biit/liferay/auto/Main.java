@@ -360,9 +360,15 @@ public class Main {
 					rolesAdded.put(roleAdded.getUniqueName(), roleAdded);
 				} catch (DuplicatedLiferayElement dle) {
 					LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists the role '" + role + "'. ");
-					IRole<Long> existingRole = roleService.getRole(role.getName(), company.getId());
-					if (existingRole != null) {
-						rolesAdded.put(existingRole.getUniqueName(), existingRole);
+					IRole<Long> existingRole;
+					try {
+						existingRole = roleService.getRole(role.getName(), company.getId());
+						if (existingRole != null) {
+							rolesAdded.put(existingRole.getUniqueName(), existingRole);
+						}
+					} catch (RoleDoesNotExistsException e) {
+						// Do nothing.
+						LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Role '" + role.getName() + "' does not exists.");
 					}
 				}
 			}
@@ -459,17 +465,22 @@ public class Main {
 			try {
 				ActionKey[] allowedActions = new ActionKey[] { ActionKey.VIEW };
 				for (IFileEntry<Long> fileEntry : images) {
-					IRole<Long> guestRole = roleService.getRole(GUEST_ROLE, fileEntry.getCompanyId());
-					Map<Long, ActionKey[]> roleIdsToActionIds = new HashMap<>();
-					roleIdsToActionIds.put(guestRole.getId(), allowedActions);
+					try {
+						IRole<Long> guestRole = roleService.getRole(GUEST_ROLE, fileEntry.getCompanyId());
+						Map<Long, ActionKey[]> roleIdsToActionIds = new HashMap<>();
+						roleIdsToActionIds.put(guestRole.getId(), allowedActions);
 
-					if (resourcePermissionsService.addResourcePermission(LIFERAY_DLFILEENTRY_CLASS, fileEntry.getId(), fileEntry.getGroupId(),
-							fileEntry.getCompanyId(), roleIdsToActionIds)) {
-						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + fileEntry.getTitle() + "' permissions changed for role '"
-								+ guestRole + "'.");
-					} else {
-						LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Image '" + fileEntry.getTitle() + "' permissions NOT changed for role '"
-								+ guestRole + "'.");
+						if (resourcePermissionsService.addResourcePermission(LIFERAY_DLFILEENTRY_CLASS, fileEntry.getId(), fileEntry.getGroupId(),
+								fileEntry.getCompanyId(), roleIdsToActionIds)) {
+							LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + fileEntry.getTitle() + "' permissions changed for role '"
+									+ guestRole + "'.");
+						} else {
+							LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Image '" + fileEntry.getTitle()
+									+ "' permissions NOT changed for role '" + guestRole + "'.");
+						}
+					} catch (RoleDoesNotExistsException e) {
+						// Do nothing.
+						LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Role '" + GUEST_ROLE + "' does not exists.");
 					}
 				}
 			} finally {

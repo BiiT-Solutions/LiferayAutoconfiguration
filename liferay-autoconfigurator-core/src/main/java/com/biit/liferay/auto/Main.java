@@ -55,6 +55,7 @@ import com.biit.usermanager.entity.IGroup;
 import com.biit.usermanager.entity.IRole;
 import com.biit.usermanager.entity.IUser;
 import com.biit.usermanager.security.exceptions.AuthenticationRequired;
+import com.biit.usermanager.security.exceptions.RoleDoesNotExistsException;
 import com.biit.usermanager.security.exceptions.UserDoesNotExistException;
 import com.biit.utils.configuration.SortedProperties;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -325,11 +326,15 @@ public class Main {
 			Set<IUser<Long>> usersInOrganization = new HashSet<>();
 			// If has a role in a organization, add to it.
 			for (UserRole usersRole : usersRoles) {
-				for (RoleSelection role : usersRole.getRoles()) {
-					if (Objects.equals(role.getOrganization(), organization.getUniqueName())) {
-						usersInOrganization.add(users.get(usersRole.getUser()));
-						break;
+				if (users.keySet().contains(usersRole.getUser())) {
+					for (RoleSelection role : usersRole.getRoles()) {
+						if (Objects.equals(role.getOrganization(), organization.getUniqueName())) {
+							usersInOrganization.add(users.get(usersRole.getUser()));
+							break;
+						}
 					}
+				} else {
+					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Skipping role '" + usersRole + "'. User does not exists.");
 				}
 			}
 			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Adding users '" + usersInOrganization + "' to organization '" + organization + "'.");
@@ -386,8 +391,9 @@ public class Main {
 					if (role == null) {
 						LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Role '" + roleSelection
 								+ "' not found in definitions, search it as a Liferay standard role.");
-						role = roleService.getRole(roleSelection.getRole(), company.getId());
-						if (role == null) {
+						try {
+							role = roleService.getRole(roleSelection.getRole(), company.getId());
+						} catch (RoleDoesNotExistsException wsa) {
 							LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid role for role selection '" + roleSelection + "' in '" + userRole
 									+ "'.");
 							continue;

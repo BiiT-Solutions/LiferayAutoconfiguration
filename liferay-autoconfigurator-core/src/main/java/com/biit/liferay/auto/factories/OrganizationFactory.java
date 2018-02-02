@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.biit.liferay.auto.log.LiferayAutoconfiguratorLogger;
-import com.biit.liferay.log.LiferayClientLogger;
 import com.biit.utils.file.FileReader;
 import com.liferay.portal.model.Organization;
 
@@ -48,7 +47,7 @@ public class OrganizationFactory extends JsonFactory<Organization> {
 					Organization organization = decodeFromJson(fileContent, Organization.class);
 					organizations.add(organization);
 				} catch (IOException e) {
-					LiferayClientLogger.error(this.getClass().getName(), "Error decoding file '" + file
+					LiferayAutoconfiguratorLogger.error(this.getClass().getName(), "Error decoding file '" + file
 							+ "'. Check if it is a json file and is correctly formed.");
 					LiferayAutoconfiguratorLogger.errorMessage(this.getClass().getName(), e);
 				}

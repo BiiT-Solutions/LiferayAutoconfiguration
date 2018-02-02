@@ -7,7 +7,6 @@ import java.util.List;
 
 import com.biit.liferay.auto.log.LiferayAutoconfiguratorLogger;
 import com.biit.liferay.auto.model.UserRole;
-import com.biit.liferay.log.LiferayClientLogger;
 import com.biit.utils.file.FileReader;
 
 public class UsersRolesFactory extends JsonFactory<UserRole> {
@@ -48,7 +47,7 @@ public class UsersRolesFactory extends JsonFactory<UserRole> {
 					UserRole role = decodeFromJson(fileContent, UserRole.class);
 					usersroles.add(role);
 				} catch (IOException e) {
-					LiferayClientLogger.error(this.getClass().getName(), "Error decoding file '" + file
+					LiferayAutoconfiguratorLogger.error(this.getClass().getName(), "Error decoding file '" + file
 							+ "'. Check if it is a json file and is correctly formed.");
 					LiferayAutoconfiguratorLogger.errorMessage(this.getClass().getName(), e);
 				}

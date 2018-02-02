@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.biit.liferay.log.LiferayClientLogger;
+import com.biit.liferay.auto.log.LiferayAutoconfiguratorLogger;
 import com.biit.utils.file.FileReader;
 import com.liferay.portal.model.User;
 
@@ -47,9 +47,9 @@ public class UserFactory extends JsonFactory<User> {
 					User user = decodeFromJson(fileContent, User.class);
 					users.add(user);
 				} catch (IOException e) {
-					LiferayClientLogger.error(this.getClass().getName(), "Error decoding file '" + file
+					LiferayAutoconfiguratorLogger.error(this.getClass().getName(), "Error decoding file '" + file
 							+ "'. Check if it is a json file and is correctly formed.");
-					LiferayClientLogger.errorMessage(this.getClass().getName(), e);
+					LiferayAutoconfiguratorLogger.errorMessage(this.getClass().getName(), e);
 				}
 			}
 		}

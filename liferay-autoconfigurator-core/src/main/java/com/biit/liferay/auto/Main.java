@@ -326,7 +326,7 @@ public class Main {
 			// If has a role in a organization, add to it.
 			for (UserRole usersRole : usersRoles) {
 				for (RoleSelection role : usersRole.getRoles()) {
-					if (role.getOrganization().equals(organization.getUniqueName())) {
+					if (Objects.equals(role.getOrganization(), organization.getUniqueName())) {
 						usersInOrganization.add(users.get(usersRole.getUser()));
 						break;
 					}

@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.biit</groupId>
 	<artifactId>liferay-autoconfigurator</artifactId>
-	<version>0.3.7-SNAPSHOT</version>
+	<version>0.3.9-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Liferay Basic Configuration Creation</name>
 	<description>Add default users, organizations, roles and articles to a newly installed Liferay</description>

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.biit.liferay.auto.log.LiferayAutoconfiguratorLogger;
 import com.biit.liferay.log.LiferayClientLogger;
 import com.biit.liferay.model.KbArticle;
 import com.biit.utils.file.FileReader;
@@ -47,7 +48,9 @@ public class ArticleFactory extends JsonFactory<KbArticle> {
 					KbArticle article = decodeFromJson(fileContent, KbArticle.class);
 					articles.add(article);
 				} catch (IOException e) {
-					LiferayClientLogger.errorMessage(this.getClass().getName(), e);
+					LiferayClientLogger.error(this.getClass().getName(), "Error decoding file '" + file
+							+ "'. Check if it is a json file and is correctly formed.");
+					LiferayAutoconfiguratorLogger.errorMessage(this.getClass().getName(), e);
 				}
 			}
 		}

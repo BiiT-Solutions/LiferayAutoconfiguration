@@ -47,6 +47,8 @@ public class UserFactory extends JsonFactory<User> {
 					User user = decodeFromJson(fileContent, User.class);
 					users.add(user);
 				} catch (IOException e) {
+					LiferayClientLogger.error(this.getClass().getName(), "Error decoding file '" + file
+							+ "'. Check if it is a json file and is correctly formed.");
 					LiferayClientLogger.errorMessage(this.getClass().getName(), e);
 				}
 			}

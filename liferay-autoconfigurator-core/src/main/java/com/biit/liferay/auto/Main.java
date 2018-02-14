@@ -602,21 +602,25 @@ public class Main {
 				LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Role '" + role + "' has no activities defined!");
 				continue;
 			}
-			if (extendedRole.getActivities() != null && !extendedRole.getActivities().isEmpty()) {
-				roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,
-				// Convert array to string without brackets.
-						extendedRole.getActivities().toString().replace("[", "").replace("]", ""));
+			if (roleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX) != null) {
+				if (extendedRole.getActivities() != null && !extendedRole.getActivities().isEmpty()) {
+					roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,
+					// Convert array to string without brackets.
+							extendedRole.getActivities().toString().replace("[", "").replace("]", ""));
+				}
+				if (extendedRole.getTranslation() != null && !extendedRole.getTranslation().isEmpty()) {
+					roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX, extendedRole.getTranslation());
+				}
+				if (extendedRole.getGroup() != null && !extendedRole.getGroup().isEmpty()) {
+					roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + GROUP_SUFIX, extendedRole.getGroup());
+				}
+				if (extendedRole.getClassification() != null && !extendedRole.getClassification().isEmpty()) {
+					roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX, extendedRole.getClassification());
+				}
+				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added activities '" + extendedRole.getActivities() + "' to role '" + role + "'.");
+			} else {
+				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Activities already defined in a previous installation. Skipping.");
 			}
-			if (extendedRole.getTranslation() != null && !extendedRole.getTranslation().isEmpty()) {
-				roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX, extendedRole.getTranslation());
-			}
-			if (extendedRole.getGroup() != null && !extendedRole.getGroup().isEmpty()) {
-				roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + GROUP_SUFIX, extendedRole.getGroup());
-			}
-			if (extendedRole.getClassification() != null && !extendedRole.getClassification().isEmpty()) {
-				roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX, extendedRole.getClassification());
-			}
-			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added activities '" + extendedRole.getActivities() + "' to role '" + role + "'.");
 		}
 
 		try {

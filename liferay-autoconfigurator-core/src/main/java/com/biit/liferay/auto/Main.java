@@ -602,7 +602,7 @@ public class Main {
 				LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Role '" + role + "' has no activities defined!");
 				continue;
 			}
-			if (roleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX) != null) {
+			if (roleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX) == null) {
 				if (extendedRole.getActivities() != null && !extendedRole.getActivities().isEmpty()) {
 					roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,
 					// Convert array to string without brackets.
@@ -619,7 +619,8 @@ public class Main {
 				}
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added activities '" + extendedRole.getActivities() + "' to role '" + role + "'.");
 			} else {
-				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Activities already defined in a previous installation. Skipping.");
+				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Activities for '" + extendedRole.getName()
+						+ "' already defined in a previous installation. Skipping.");
 			}
 		}
 

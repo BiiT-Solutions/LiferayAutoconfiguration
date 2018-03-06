@@ -269,7 +269,8 @@ public class Main {
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added user '" + userAdded + "'.");
 					usersAdded.put(user.getUniqueName(), userAdded);
 				} catch (DuplicatedLiferayElement dusne) {
-					LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists an user with screen name '" + user.getScreenName() + "'. ");
+					LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists an user with screen name '" + user.getScreenName()
+							+ "' or email '" + user.getEmailAddress() + "'. ");
 					IUser<Long> existingUser;
 					try {
 						existingUser = userService.getUserByEmailAddress(company, user.getEmailAddress());

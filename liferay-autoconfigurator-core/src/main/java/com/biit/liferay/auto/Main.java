@@ -1,6 +1,7 @@
 package com.biit.liferay.auto;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FilenameFilter;
@@ -391,8 +392,8 @@ public class Main {
 					IUser<Long> user = users.get(userRole.getUser());
 					IRole<Long> role = roles.get(roleSelection.getRole());
 					if (user == null) {
-						LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid user for role selection '" + roleSelection + "' in '" + userRole
-								+ "'.");
+						LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid user '" + userRole.getUser() + "' for role selection '"
+								+ roleSelection + "' in '" + userRole + "'.");
 						continue;
 					}
 					if (role == null) {
@@ -596,32 +597,49 @@ public class Main {
 	}
 
 	private static void defineRoleActivities(Collection<IRole<Long>> roles, String usmoConfigPath) {
-		Properties roleActivitiesConfiguration = new SortedProperties();
+		Properties newRoleActivitiesConfiguration = new SortedProperties();
+		Properties oldRoleActivitiesConfiguration = new Properties();
+		try {
+			oldRoleActivitiesConfiguration.load(new FileInputStream(usmoConfigPath + File.separator + ROLE_ACTIVITIES_FILE));
+		} catch (IOException e) {
+			// No previous roles file found
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "No previous role activities definitions found at '" + usmoConfigPath + File.separator
+					+ ROLE_ACTIVITIES_FILE + "'.");
+		}
 		for (IRole<Long> role : roles) {
 			ExtendedRole extendedRole = RoleFactory.getInstance().getElement(role);
 			if (extendedRole == null) {
 				LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Role '" + role + "' has no activities defined!");
 				continue;
 			}
-			if (roleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX) == null) {
+			if (oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX) == null) {
 				if (extendedRole.getActivities() != null && !extendedRole.getActivities().isEmpty()) {
-					roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,
+					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,
 					// Convert array to string without brackets.
 							extendedRole.getActivities().toString().replace("[", "").replace("]", ""));
 				}
 				if (extendedRole.getTranslation() != null && !extendedRole.getTranslation().isEmpty()) {
-					roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX, extendedRole.getTranslation());
+					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX, extendedRole.getTranslation());
 				}
 				if (extendedRole.getGroup() != null && !extendedRole.getGroup().isEmpty()) {
-					roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + GROUP_SUFIX, extendedRole.getGroup());
+					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + GROUP_SUFIX, extendedRole.getGroup());
 				}
 				if (extendedRole.getClassification() != null && !extendedRole.getClassification().isEmpty()) {
-					roleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX, extendedRole.getClassification());
+					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX, extendedRole.getClassification());
 				}
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added activities '" + extendedRole.getActivities() + "' to role '" + role + "'.");
 			} else {
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Activities for '" + extendedRole.getName()
 						+ "' already defined in a previous installation. Skipping.");
+				// Copy properties from old to new.
+				newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,
+						oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX));
+				newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX,
+						oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX));
+				newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + GROUP_SUFIX,
+						oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + GROUP_SUFIX));
+				newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX,
+						oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX));
 			}
 		}
 
@@ -629,7 +647,7 @@ public class Main {
 			// Create file if it does not exists.
 			File yourFile = new File(usmoConfigPath + File.separator + ROLE_ACTIVITIES_FILE);
 			yourFile.createNewFile(); // if file already exists will do nothing
-			roleActivitiesConfiguration.store(new FileOutputStream(usmoConfigPath + File.separator + ROLE_ACTIVITIES_FILE), null);
+			newRoleActivitiesConfiguration.store(new FileOutputStream(usmoConfigPath + File.separator + ROLE_ACTIVITIES_FILE), null);
 		} catch (FileNotFoundException fne) {
 			LiferayAutoconfiguratorLogger.error(Main.class.getName(), fne.getMessage());
 		} catch (IOException e) {

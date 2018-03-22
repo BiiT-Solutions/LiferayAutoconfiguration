@@ -92,7 +92,7 @@ public class Main {
 	private static final long FOLDER_ID = 0l;
 
 	private static final Pattern pattern = Pattern.compile("\\@\\@.*?\\@\\@");
-	private static final String DROOLS_ARTICLE_CONFIG_PATTERN = "liferay-knowledge-base-[0-9\\\\.]+-jar-with-dependencies\\.conf";
+	private static final String DROOLS_ARTICLE_CONFIG_PATTERN = "liferay-knowledge-base-[0-9\\\\.]+(-SNAPSHOT)?-jar-with-dependencies\\.conf";
 
 	private static final String USMO_CONFIG_ENV_VARIABLE = "USMO_CONFIGURATION_FOLDER";
 	private static final String DEFAULT_USMO_CONFIG_FOLDER = "/opt/configuration/usmo_config/";

@@ -672,7 +672,7 @@ public class Main {
 		} catch (NullPointerException npe) {
 			// Do nothing, use next exception.
 		}
-		throw new FileNotFoundException("No file matches '" + path + "/" + fileRegex + "'.");
+		throw new FileNotFoundException("No file matches '" + path + (fileRegex.startsWith("/") ? "" : "/") + fileRegex + "'.");
 	}
 
 	public static String readEnvironmentVariable(String environmentVariable, String defaultValue) {

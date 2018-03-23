@@ -364,7 +364,7 @@ public class Main {
 					LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists the role '" + role + "'. ");
 					IRole<Long> existingRole;
 					try {
-						existingRole = roleService.getRole(role.getName(), company.getId());
+						existingRole = roleService.getRole(role.getName(), company.getUniqueId());
 						if (existingRole != null) {
 							rolesAdded.put(existingRole.getUniqueName(), existingRole);
 						}
@@ -400,7 +400,7 @@ public class Main {
 						LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Role '" + roleSelection
 								+ "' not found in definitions, search it as a Liferay standard role.");
 						try {
-							role = roleService.getRole(roleSelection.getRole(), company.getId());
+							role = roleService.getRole(roleSelection.getRole(), company.getUniqueId());
 						} catch (RoleDoesNotExistsException wsa) {
 							LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid role for role selection '" + roleSelection + "' in '" + userRole
 									+ "'.");
@@ -470,9 +470,9 @@ public class Main {
 					try {
 						IRole<Long> guestRole = roleService.getRole(GUEST_ROLE, fileEntry.getCompanyId());
 						Map<Long, ActionKey[]> roleIdsToActionIds = new HashMap<>();
-						roleIdsToActionIds.put(guestRole.getId(), allowedActions);
+						roleIdsToActionIds.put(guestRole.getUniqueId(), allowedActions);
 
-						if (resourcePermissionsService.addResourcePermission(LIFERAY_DLFILEENTRY_CLASS, fileEntry.getId(), fileEntry.getGroupId(),
+						if (resourcePermissionsService.addResourcePermission(LIFERAY_DLFILEENTRY_CLASS, fileEntry.getUniqueId(), fileEntry.getGroupId(),
 								fileEntry.getCompanyId(), roleIdsToActionIds)) {
 							LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + fileEntry.getTitle() + "' permissions changed for role '"
 									+ guestRole + "'.");
@@ -579,9 +579,9 @@ public class Main {
 	private static void setDroolsEngineArticleProperties(Map<String, IArticle<Long>> articles, String droolsArticleConfigPath) {
 		Properties droolsArticleConfiguration = new SortedProperties();
 		for (Entry<String, IArticle<Long>> articleEntry : articles.entrySet()) {
-			droolsArticleConfiguration.setProperty(articleEntry.getKey(), Long.toString(articleEntry.getValue().getId()));
+			droolsArticleConfiguration.setProperty(articleEntry.getKey(), Long.toString(articleEntry.getValue().getUniqueId()));
 			LiferayAutoconfiguratorLogger.info(Main.class.getName(),
-					"Added article id '" + articleEntry.getValue().getId() + "' to article '" + articleEntry.getKey() + "'.");
+					"Added article id '" + articleEntry.getValue().getUniqueId() + "' to article '" + articleEntry.getKey() + "'.");
 		}
 		try {
 			droolsArticleConfiguration.store(new FileOutputStream(getDroolsEngineArticlePropertiesPath(droolsArticleConfigPath)), null);

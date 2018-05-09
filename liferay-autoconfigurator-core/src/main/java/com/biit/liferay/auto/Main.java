@@ -508,6 +508,9 @@ public class Main {
 				// Force the recalculation of the parent resource class name by
 				// the webservice.
 				articleToAdd.setParentResourceClassNameId(null);
+				articleToAdd.setKbFolderId(0l);
+				articleToAdd.setParentResourcePrimKey(0l);
+				
 				// URL title must start with a '/' and contain only alphanumeric
 				// characters, dashes, and underscores
 				if (!articleToAdd.getUrlTitle().startsWith("/")) {

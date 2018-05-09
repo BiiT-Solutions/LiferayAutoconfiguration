@@ -578,9 +578,9 @@ public class Main {
 	private static void setDroolsEngineArticleProperties(Map<String, IArticle<Long>> articles, String droolsArticleConfigPath) {
 		Properties droolsArticleConfiguration = new SortedProperties();
 		for (Entry<String, IArticle<Long>> articleEntry : articles.entrySet()) {
-			droolsArticleConfiguration.setProperty(articleEntry.getKey(), Long.toString(articleEntry.getValue().getUniqueId()));
+			droolsArticleConfiguration.setProperty(articleEntry.getKey(), Long.toString(articleEntry.getValue().getResourcePrimKey()));
 			LiferayAutoconfiguratorLogger.info(Main.class.getName(),
-					"Added article id '" + articleEntry.getValue().getUniqueId() + "' to article '" + articleEntry.getKey() + "'.");
+					"Added article '" + articleEntry.getValue().getResourcePrimKey() + "' to article '" + articleEntry.getKey() + "'.");
 		}
 		try {
 			droolsArticleConfiguration.store(new FileOutputStream(getDroolsEngineArticlePropertiesPath(droolsArticleConfigPath)), null);

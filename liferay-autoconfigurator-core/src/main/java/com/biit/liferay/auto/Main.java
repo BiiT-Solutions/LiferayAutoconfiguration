@@ -166,8 +166,7 @@ public class Main {
 				LiferayAutoconfiguratorLogger.error(Main.class.getName(), "No company found. Check your configuration.");
 				System.exit(-1);
 			}
-		} catch (NotConnectedToWebServiceException | IOException | AuthenticationRequired | WebServiceAccessError | DuplicatedLiferayElement
-				| UserDoesNotExistException e) {
+		} catch (NotConnectedToWebServiceException | IOException | AuthenticationRequired | WebServiceAccessError | DuplicatedLiferayElement | UserDoesNotExistException e) {
 			LiferayAutoconfiguratorLogger.errorMessage(Main.class.getName(), e);
 		}
 		System.exit(0);
@@ -199,8 +198,8 @@ public class Main {
 		}
 	}
 
-	private static Company getCompany(String companyName, String connectionPassword) throws JsonParseException, JsonMappingException,
-			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
+	private static Company getCompany(String companyName, String connectionPassword) throws JsonParseException, JsonMappingException, NotConnectedToWebServiceException,
+			IOException, AuthenticationRequired, WebServiceAccessError {
 		CompanyService companyService = new CompanyService();
 		try {
 			companyService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
@@ -251,8 +250,8 @@ public class Main {
 		return false;
 	}
 
-	private static Map<String, IUser<Long>> storeUsers(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
-			IOException, AuthenticationRequired, WebServiceAccessError {
+	private static Map<String, IUser<Long>> storeUsers(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
+			AuthenticationRequired, WebServiceAccessError {
 		// Get users from resources profile
 		UserService userService = new UserService();
 		userService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
@@ -270,8 +269,8 @@ public class Main {
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added user '" + userAdded + "'.");
 					usersAdded.put(user.getUniqueName(), userAdded);
 				} catch (DuplicatedLiferayElement dusne) {
-					LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists an user with screen name '" + user.getScreenName()
-							+ "' or email '" + user.getEmailAddress() + "'. ");
+					LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists an user with screen name '" + user.getScreenName() + "' or email '"
+							+ user.getEmailAddress() + "'. ");
 					IUser<Long> existingUser;
 					try {
 						existingUser = userService.getUserByEmailAddress(company, user.getEmailAddress());
@@ -346,8 +345,8 @@ public class Main {
 		organizationService.disconnect();
 	}
 
-	private static Map<String, IRole<Long>> storeRoles(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
-			IOException, AuthenticationRequired, WebServiceAccessError {
+	private static Map<String, IRole<Long>> storeRoles(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
+			AuthenticationRequired, WebServiceAccessError {
 		RoleService roleService = new RoleService();
 		roleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		List<ExtendedRole> roles = RoleFactory.getInstance().getElements();
@@ -381,8 +380,7 @@ public class Main {
 	}
 
 	private static void assignRolesToUsers(Map<String, IRole<Long>> roles, Map<String, IUser<Long>> users, Map<String, IGroup<Long>> organizations,
-			String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException, AuthenticationRequired,
-			WebServiceAccessError {
+			String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
 		List<UserRole> usersRoles = UsersRolesFactory.getInstance().getElements();
 		RoleService roleService = new RoleService();
 		roleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
@@ -392,8 +390,8 @@ public class Main {
 					IUser<Long> user = users.get(userRole.getUser());
 					IRole<Long> role = roles.get(roleSelection.getRole());
 					if (user == null) {
-						LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid user '" + userRole.getUser() + "' for role selection '"
-								+ roleSelection + "' in '" + userRole + "'.");
+						LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid user '" + userRole.getUser() + "' for role selection '" + roleSelection
+								+ "' in '" + userRole + "'.");
 						continue;
 					}
 					if (role == null) {
@@ -402,16 +400,14 @@ public class Main {
 						try {
 							role = roleService.getRole(roleSelection.getRole(), company.getUniqueId());
 						} catch (RoleDoesNotExistsException wsa) {
-							LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid role for role selection '" + roleSelection + "' in '" + userRole
-									+ "'.");
+							LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid role for role selection '" + roleSelection + "' in '" + userRole + "'.");
 							continue;
 						}
 					}
 					if (roleSelection.getOrganization() == null) {
 						// Generic role.
 						roleService.addRoleUser(user, role);
-						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added role '" + roleSelection + "' to user '" + users.get(userRole.getUser())
-								+ "'.");
+						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added role '" + roleSelection + "' to user '" + users.get(userRole.getUser()) + "'.");
 					} else {
 						// Organization role.
 						roleService.addUserOrganizationRole(user, organizations.get(roleSelection.getOrganization()), role);
@@ -425,8 +421,8 @@ public class Main {
 		}
 	}
 
-	private static Map<String, IFileEntry<Long>> uploadImages(String connectionPassword) throws ClientProtocolException, IOException,
-			NotConnectedToWebServiceException, AuthenticationRequired, WebServiceAccessError {
+	private static Map<String, IFileEntry<Long>> uploadImages(String connectionPassword) throws ClientProtocolException, IOException, NotConnectedToWebServiceException,
+			AuthenticationRequired, WebServiceAccessError {
 		Map<String, IFileEntry<Long>> imagesUploaded = new HashMap<>();
 		List<File> images = ImageFactory.getInstance().getElements();
 		// Upload images
@@ -456,8 +452,8 @@ public class Main {
 		return imagesUploaded;
 	}
 
-	private static void setGuestPermissions(Set<IFileEntry<Long>> images, String connectionPassword) throws ClientProtocolException,
-			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
+	private static void setGuestPermissions(Set<IFileEntry<Long>> images, String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
+			IOException, AuthenticationRequired, WebServiceAccessError {
 		ResourcePermissionService resourcePermissionsService = new ResourcePermissionService();
 		resourcePermissionsService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 
@@ -474,11 +470,11 @@ public class Main {
 
 						if (resourcePermissionsService.addResourcePermission(LIFERAY_DLFILEENTRY_CLASS, fileEntry.getUniqueId(), fileEntry.getGroupId(),
 								fileEntry.getCompanyId(), roleIdsToActionIds)) {
-							LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + fileEntry.getTitle() + "' permissions changed for role '"
-									+ guestRole + "'.");
+							LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + fileEntry.getTitle() + "' permissions changed for role '" + guestRole
+									+ "'.");
 						} else {
-							LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Image '" + fileEntry.getTitle()
-									+ "' permissions NOT changed for role '" + guestRole + "'.");
+							LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Image '" + fileEntry.getTitle() + "' permissions NOT changed for role '"
+									+ guestRole + "'.");
 						}
 					} catch (RoleDoesNotExistsException e) {
 						// Do nothing.
@@ -494,8 +490,8 @@ public class Main {
 	}
 
 	private static Map<String, IArticle<Long>> storeArticles(String virtualHost, String connectionPassword, String liferayServerUrl,
-			Map<String, IFileEntry<Long>> existingImages) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
-			AuthenticationRequired, WebServiceAccessError {
+			Map<String, IFileEntry<Long>> existingImages) throws ClientProtocolException, NotConnectedToWebServiceException, IOException, AuthenticationRequired,
+			WebServiceAccessError {
 		// Get users from resources profile
 		ArticleService articleService = new ArticleService();
 		articleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
@@ -632,14 +628,22 @@ public class Main {
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Activities for '" + extendedRole.getName()
 						+ "' already defined in a previous installation. Skipping.");
 				// Copy properties from old to new.
-				newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,
-						oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX));
-				newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX,
-						oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX));
-				newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + GROUP_SUFIX,
-						oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + GROUP_SUFIX));
-				newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX,
-						oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX));
+				if (oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX) != null && !oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX).isEmpty()) {
+					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,
+							oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX));
+				}
+				if (oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX) != null && !oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX).isEmpty()) {
+					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX,
+							oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX));
+				}
+				if (oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + GROUP_SUFIX) != null && !oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + GROUP_SUFIX).isEmpty()) {
+					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + GROUP_SUFIX,
+							oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + GROUP_SUFIX));
+				}
+				if (oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX) != null && !oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX).isEmpty()) {
+					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX,
+							oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX));
+				}
 			}
 		}
 

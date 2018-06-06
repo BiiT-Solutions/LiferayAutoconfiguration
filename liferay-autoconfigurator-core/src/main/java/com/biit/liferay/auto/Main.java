@@ -46,6 +46,7 @@ import com.biit.liferay.auto.factories.RoleFactory;
 import com.biit.liferay.auto.factories.UserFactory;
 import com.biit.liferay.auto.factories.UsersRolesFactory;
 import com.biit.liferay.auto.log.LiferayAutoconfiguratorLogger;
+import com.biit.liferay.auto.model.ExtendedOrganization;
 import com.biit.liferay.auto.model.ExtendedRole;
 import com.biit.liferay.auto.model.RoleSelection;
 import com.biit.liferay.auto.model.UserRole;
@@ -64,7 +65,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.liferay.portal.model.ActionKey;
 import com.liferay.portal.model.Company;
-import com.liferay.portal.model.Organization;
 import com.liferay.portal.model.Site;
 import com.liferay.portal.model.User;
 
@@ -294,13 +294,22 @@ public class Main {
 			IOException, AuthenticationRequired, WebServiceAccessError {
 		OrganizationService organizationService = new OrganizationService();
 		organizationService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
-		List<Organization> organizations = OrganizationFactory.getInstance().getElements();
+		List<ExtendedOrganization> organizations = OrganizationFactory.getInstance().getElements();
 		LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Organizations to add '" + organizations.size() + "'.");
 		Map<String, IGroup<Long>> organizationsAdded = new HashMap<>();
 		try {
-			for (Organization organization : organizations) {
+			for (ExtendedOrganization organization : organizations) {
 				organization.setCompanyId(company.getCompanyId());
 				try {
+					// Get parent
+					if (organization.getParentOrganizationName() != null) {
+						IGroup<Long> parent = organizationsAdded.get(organization.getUniqueName());
+						organization.setParentOrganizationId(parent.getUniqueId());
+						LiferayAutoconfiguratorLogger.info(
+								Main.class.getName(),
+								"Parent organization of '" + organization.getUniqueName() + "' is '" + parent.getUniqueName() + "' with id '"
+										+ parent.getUniqueId() + "'.");
+					}
 					IGroup<Long> organizationAdded = organizationService.addOrganization(company, organization);
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added organization '" + organizationAdded + "'.");
 					organizationsAdded.put(organization.getUniqueName(), organizationAdded);

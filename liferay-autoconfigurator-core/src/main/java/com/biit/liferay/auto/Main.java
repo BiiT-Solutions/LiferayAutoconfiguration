@@ -253,7 +253,7 @@ public class Main {
 	}
 
 	private static Map<String, IUser<Long>> storeUsers(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
-			IOException, AuthenticationRequired, WebServiceAccessError {
+			IOException, AuthenticationRequired {
 		// Get users from resources profile
 		UserService userService = new UserService();
 		userService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
@@ -262,26 +262,32 @@ public class Main {
 		Map<String, IUser<Long>> usersAdded = new HashMap<>();
 		try {
 			for (User user : users) {
-				if (user.getPassword() == null || user.getPassword().isEmpty()) {
-					user.setPassword(DEFAULT_LIFERAY_PASSWORD);
-				}
-				user.setCompanyId(company.getCompanyId());
 				try {
-					IUser<Long> userAdded = userService.addUser(company, user);
-					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added user '" + userAdded + "'.");
-					usersAdded.put(user.getUniqueName(), userAdded);
-				} catch (DuplicatedLiferayElement dusne) {
-					LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists an user with screen name '" + user.getScreenName()
-							+ "' or email '" + user.getEmailAddress() + "'. ");
-					IUser<Long> existingUser;
-					try {
-						existingUser = userService.getUserByEmailAddress(company, user.getEmailAddress());
-						if (existingUser != null) {
-							usersAdded.put(existingUser.getUniqueName(), existingUser);
-						}
-					} catch (UserDoesNotExistException e) {
-						// Do nothing
+					if (user.getPassword() == null || user.getPassword().isEmpty()) {
+						user.setPassword(DEFAULT_LIFERAY_PASSWORD);
 					}
+					user.setCompanyId(company.getCompanyId());
+					try {
+						IUser<Long> userAdded = userService.addUser(company, user);
+						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added user '" + userAdded + "'.");
+						usersAdded.put(user.getUniqueName(), userAdded);
+					} catch (DuplicatedLiferayElement dusne) {
+						LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists an user with screen name '" + user.getScreenName()
+								+ "' or email '" + user.getEmailAddress() + "'. ");
+						IUser<Long> existingUser;
+						try {
+							existingUser = userService.getUserByEmailAddress(company, user.getEmailAddress());
+							if (existingUser != null) {
+								usersAdded.put(existingUser.getUniqueName(), existingUser);
+							}
+						} catch (UserDoesNotExistException e) {
+							// Do nothing
+						}
+					}
+				} catch (WebServiceAccessError wsace) {
+					LiferayAutoconfiguratorLogger.error(Main.class.getName(),
+							"Error with user '" + user.getScreenName() + "' or email '" + user.getEmailAddress() + "'. ");
+					LiferayAutoconfiguratorLogger.errorMessage(Main.class.getName(), wsace);
 				}
 			}
 		} finally {

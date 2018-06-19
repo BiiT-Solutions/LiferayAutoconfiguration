@@ -309,7 +309,7 @@ public class Main {
 				try {
 					// Get parent
 					if (organization.getParentOrganizationName() != null) {
-						IGroup<Long> parent = organizationsAdded.get(organization.getUniqueName());
+						IGroup<Long> parent = organizationsAdded.get(organization.getParentOrganizationName());
 						organization.setParentOrganizationId(parent.getUniqueId());
 						LiferayAutoconfiguratorLogger.info(
 								Main.class.getName(),

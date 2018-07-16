@@ -10,11 +10,17 @@ import com.biit.utils.file.FileReader;
 public abstract class Factory<Type> {
 
 	protected List<File> getDefinitions() {
-		File folder = new File(AutoConfigurationReader.getInstance().getContentFolder() + File.separator + getResourceFolder());
-		if (folder.exists()) {
+		return getDefinitions(getDefinitionsFolderPath());
+	}
+
+	protected List<File> getDefinitions(String resource) {
+		// Absolute path.
+		File folder = new File(resource);
+		if (folder != null && folder.exists()) {
 			LiferayAutoconfiguratorLogger.info(this.getClass().getName(), "Accessing to files in '" + folder.getAbsolutePath() + "'.");
 			return FileReader.getFiles(folder);
 		}
+		// Resource path
 		LiferayAutoconfiguratorLogger.debug(this.getClass().getName(), "Accessing to files in project resources.");
 		return FileReader.getResources(getResourceFolder());
 	}

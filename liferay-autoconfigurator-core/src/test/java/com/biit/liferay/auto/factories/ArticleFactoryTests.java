@@ -9,7 +9,7 @@ import com.biit.liferay.model.KbArticle;
 
 @Test(groups = "articleFactory")
 public class ArticleFactoryTests {
-	private final int ARTICLES_IN_FOLDER = 1;
+	private final int ARTICLES_IN_FOLDER = 3;
 
 	private List<KbArticle> articles;
 
@@ -17,6 +17,7 @@ public class ArticleFactoryTests {
 	public void getArticlesFromResources() {
 		Assert.assertEquals(ArticleFactory.getInstance().getDefinitions().size(), ARTICLES_IN_FOLDER);
 		articles = ArticleFactory.getInstance().getElements();
+		System.out.println(articles);
 		Assert.assertEquals(articles.size(), ARTICLES_IN_FOLDER);
 	}
 

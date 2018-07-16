@@ -39,9 +39,18 @@ public class ArticleFactory extends JsonFactory<KbArticle> {
 	@Override
 	public List<KbArticle> getElements() {
 		if (articles == null) {
-			List<File> definitions = getDefinitions();
-			articles = new ArrayList<>();
-			for (File file : definitions) {
+			articles = getElements(getResourceFolder());
+		}
+		return articles;
+	}
+
+	private List<KbArticle> getElements(String path) {
+		List<File> definitions = getDefinitions(path);
+		List<KbArticle> articles = new ArrayList<>();
+		for (File file : definitions) {
+			if (file.isDirectory()) {
+				articles.addAll(getElements(file.getAbsolutePath()));
+			} else {
 				try {
 					String fileContent = FileReader.readFile(file);
 					KbArticle article = decodeFromJson(fileContent, KbArticle.class);

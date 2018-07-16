@@ -614,7 +614,7 @@ public class Main {
 		// Override only the updated ones.
 		for (Entry<String, IArticle<Long>> articleEntry : articles.entrySet()) {
 			droolsArticleConfiguration.setProperty(articleEntry.getKey(), Long.toString(articleEntry.getValue().getResourcePrimKey()));
-			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added article '" + articleEntry.getValue().getResourcePrimKey() + "' to article '"
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Setting article id '" + articleEntry.getValue().getResourcePrimKey() + "' to article '"
 					+ articleEntry.getKey() + "'.");
 		}
 		try (FileOutputStream outputStream = new FileOutputStream(getDroolsEngineArticlePropertiesPath(droolsArticleConfigPath))) {

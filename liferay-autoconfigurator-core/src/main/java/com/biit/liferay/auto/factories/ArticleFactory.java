@@ -39,7 +39,7 @@ public class ArticleFactory extends JsonFactory<KbArticle> {
 	@Override
 	public List<KbArticle> getElements() {
 		if (articles == null) {
-			articles = getElements(getResourceFolder());
+			articles = getElements(getDefinitionsFolderPath());
 		}
 		return articles;
 	}

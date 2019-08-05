@@ -3,6 +3,7 @@ package com.biit.liferay.auto.factories;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -41,6 +42,7 @@ public class ArticleFactory extends JsonFactory<KbArticle> {
 	@Override
 	public List<KbArticle> getElements() {
 		if (filesByFolder == null) {
+			filesByFolder = new HashMap<>();
 			getElements(filesByFolder, null, getDefinitionsFolderPath());
 		}
 

@@ -53,6 +53,7 @@ import com.biit.liferay.auto.model.ExtendedRole;
 import com.biit.liferay.auto.model.RoleSelection;
 import com.biit.liferay.auto.model.UserRole;
 import com.biit.liferay.configuration.LiferayConfigurationReader;
+import com.biit.liferay.log.LiferayClientLogger;
 import com.biit.liferay.model.IArticle;
 import com.biit.liferay.model.IFileEntry;
 import com.biit.liferay.model.IFolder;
@@ -489,6 +490,8 @@ public class Main {
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Inserted image '" + name + "'.");
 				} catch (DuplicatedFileException dfe) {
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + name + "' already inserted.");
+				} catch (JsonParseException e) {
+					LiferayClientLogger.error(Main.class.getName(), "Image '" + name + "' not added!");
 				}
 			}
 			// Add existing images

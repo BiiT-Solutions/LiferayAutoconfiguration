@@ -25,7 +25,9 @@ import javax.activation.MimetypesFileTypeMap;
 
 import org.apache.http.client.ClientProtocolException;
 
+import com.biit.liferay.access.ArticleFolderService;
 import com.biit.liferay.access.ArticleService;
+import com.biit.liferay.access.ClassNameService;
 import com.biit.liferay.access.CompanyService;
 import com.biit.liferay.access.FileEntryService;
 import com.biit.liferay.access.OrganizationService;
@@ -53,7 +55,10 @@ import com.biit.liferay.auto.model.UserRole;
 import com.biit.liferay.configuration.LiferayConfigurationReader;
 import com.biit.liferay.model.IArticle;
 import com.biit.liferay.model.IFileEntry;
+import com.biit.liferay.model.IFolder;
 import com.biit.liferay.model.KbArticle;
+import com.biit.liferay.model.KbFolder;
+import com.biit.usermanager.entity.IElement;
 import com.biit.usermanager.entity.IGroup;
 import com.biit.usermanager.entity.IRole;
 import com.biit.usermanager.entity.IUser;
@@ -110,18 +115,19 @@ public class Main {
 	 * Main method: java -jar liferay-autoconfigurator.jar asd123 localhost
 	 * pathToDroolsArticleConfig https://docker.biit-solutions.com/liferay
 	 * 
-	 * @param args
-	 *            virtualhost, new user password, liferayServerUrl
+	 * @param args virtualhost, new user password, liferayServerUrl
 	 */
 	public static void main(String[] args) {
 		try {
 			try {
 				// Try default password.
 				company = getCompany(getVirtualHost(args), DEFAULT_LIFERAY_ADMIN_PASSWORD);
-				LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Accessing using default password '" + DEFAULT_LIFERAY_ADMIN_PASSWORD + "'.");
+				LiferayAutoconfiguratorLogger.debug(Main.class.getName(),
+						"Accessing using default password '" + DEFAULT_LIFERAY_ADMIN_PASSWORD + "'.");
 			} catch (ConnectException | AuthenticationRequired ce) {
 				// Not first time executed, try new password.
-				LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Accessing using provided password '" + getPassword(args) + "'.");
+				LiferayAutoconfiguratorLogger.debug(Main.class.getName(),
+						"Accessing using provided password '" + getPassword(args) + "'.");
 				company = getCompany(getVirtualHost(args), getPassword(args));
 			}
 
@@ -148,7 +154,8 @@ public class Main {
 				assignRolesToUsers(roles, users, organizations, getPassword(args));
 
 				// Define activities by roles.
-				defineRoleActivities(roles.values(), readEnvironmentVariable(USMO_CONFIG_ENV_VARIABLE, DEFAULT_USMO_CONFIG_FOLDER));
+				defineRoleActivities(roles.values(),
+						readEnvironmentVariable(USMO_CONFIG_ENV_VARIABLE, DEFAULT_USMO_CONFIG_FOLDER));
 
 				// Add images.
 				Map<String, IFileEntry<Long>> images = uploadImages(getPassword(args));
@@ -157,18 +164,21 @@ public class Main {
 				setGuestPermissions(new HashSet<>(images.values()), getPassword(args));
 
 				// Set articles.
-				Map<String, IArticle<Long>> articles = storeArticles(getVirtualHost(args), getPassword(args), getLiferayServer(args), images);
+				Map<String, IArticle<Long>> articles = storeArticles(getVirtualHost(args), getPassword(args),
+						getLiferayServer(args), images);
 
 				// Set drools liferay article plugin configuration.
-				setDroolsEngineArticleProperties(articles, readEnvironmentVariable(DROOLS_PLUGIN_ENV_VARIABLE, DEFAULT_DROOLS_ARTICLE_CONFIG_PATH));
+				setDroolsEngineArticleProperties(articles,
+						readEnvironmentVariable(DROOLS_PLUGIN_ENV_VARIABLE, DEFAULT_DROOLS_ARTICLE_CONFIG_PATH));
 
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Liferay updated correctly!");
 			} else {
-				LiferayAutoconfiguratorLogger.error(Main.class.getName(), "No company found. Check your configuration.");
+				LiferayAutoconfiguratorLogger.error(Main.class.getName(),
+						"No company found. Check your configuration.");
 				System.exit(-1);
 			}
-		} catch (NotConnectedToWebServiceException | IOException | AuthenticationRequired | WebServiceAccessError | DuplicatedLiferayElement
-				| UserDoesNotExistException e) {
+		} catch (NotConnectedToWebServiceException | IOException | AuthenticationRequired | WebServiceAccessError
+				| DuplicatedLiferayElement | UserDoesNotExistException e) {
 			LiferayAutoconfiguratorLogger.errorMessage(Main.class.getName(), e);
 		}
 		System.exit(0);
@@ -192,7 +202,8 @@ public class Main {
 
 	private static String getLiferayServer(String[] args) {
 		if (args.length <= ARG_LIFERAY_SERVER) {
-			return LiferayConfigurationReader.getInstance().getLiferayProtocol() + "://" + LiferayConfigurationReader.getInstance().getHost() + ":"
+			return LiferayConfigurationReader.getInstance().getLiferayProtocol() + "://"
+					+ LiferayConfigurationReader.getInstance().getHost() + ":"
 					+ LiferayConfigurationReader.getInstance().getConnectionPort() + RPROXY_LIFERAY;
 		} else {
 			// Always HTTPS in docker compose.
@@ -200,20 +211,23 @@ public class Main {
 		}
 	}
 
-	private static Company getCompany(String companyName, String connectionPassword) throws JsonParseException, JsonMappingException,
-			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
+	private static Company getCompany(String companyName, String connectionPassword)
+			throws JsonParseException, JsonMappingException, NotConnectedToWebServiceException, IOException,
+			AuthenticationRequired, WebServiceAccessError {
 		CompanyService companyService = new CompanyService();
 		try {
 			companyService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 			Company company = (Company) companyService.getCompanyByVirtualHost(companyName);
-			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Company obtained '" + company.getCompanyId() + "'.");
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+					"Company obtained '" + company.getCompanyId() + "'.");
 			return company;
 		} finally {
 			companyService.disconnect();
 		}
 	}
 
-	private static Site getSite(String connectionPassword) throws JsonParseException, JsonMappingException, NotConnectedToWebServiceException, IOException,
+	private static Site getSite(String connectionPassword)
+			throws JsonParseException, JsonMappingException, NotConnectedToWebServiceException, IOException,
 			AuthenticationRequired, WebServiceAccessError, DuplicatedLiferayElement {
 		SiteService siteService = new SiteService();
 		try {
@@ -223,8 +237,10 @@ public class Main {
 				site = (Site) siteService.getSite(company, SITE_NAME);
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Site already exists.");
 			} catch (WebServiceAccessError wsa) {
-				site = (Site) siteService.addSite(SITE_NAME, SITE_DESCRIPTION, SiteType.DEFAULT_PARENT_GROUP_ID, SITE_URL);
-				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Site created '" + site.getUniqueName() + "'.");
+				site = (Site) siteService.addSite(SITE_NAME, SITE_DESCRIPTION, SiteType.DEFAULT_PARENT_GROUP_ID,
+						SITE_URL);
+				LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+						"Site created '" + site.getUniqueName() + "'.");
 			}
 			return site;
 		} finally {
@@ -232,8 +248,8 @@ public class Main {
 		}
 	}
 
-	private static boolean updateDefaultPassword(String newPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
-			WebServiceAccessError, UserDoesNotExistException {
+	private static boolean updateDefaultPassword(String newPassword) throws ClientProtocolException,
+			NotConnectedToWebServiceException, IOException, WebServiceAccessError, UserDoesNotExistException {
 		UserService userService = new UserService();
 		PasswordService passwordService = new PasswordService();
 		try {
@@ -252,8 +268,8 @@ public class Main {
 		return false;
 	}
 
-	private static Map<String, IUser<Long>> storeUsers(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
-			IOException, AuthenticationRequired {
+	private static Map<String, IUser<Long>> storeUsers(String connectionPassword)
+			throws ClientProtocolException, NotConnectedToWebServiceException, IOException, AuthenticationRequired {
 		// Get users from resources profile
 		UserService userService = new UserService();
 		userService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
@@ -272,8 +288,9 @@ public class Main {
 						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added user '" + userAdded + "'.");
 						usersAdded.put(user.getUniqueName(), userAdded);
 					} catch (DuplicatedLiferayElement dusne) {
-						LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists an user with screen name '" + user.getScreenName()
-								+ "' or email '" + user.getEmailAddress() + "'. ");
+						LiferayAutoconfiguratorLogger.warning(Main.class.getName(),
+								"Already exists an user with screen name '" + user.getScreenName() + "' or email '"
+										+ user.getEmailAddress() + "'. ");
 						IUser<Long> existingUser;
 						try {
 							existingUser = userService.getUserByEmailAddress(company, user.getEmailAddress());
@@ -285,8 +302,8 @@ public class Main {
 						}
 					}
 				} catch (WebServiceAccessError wsace) {
-					LiferayAutoconfiguratorLogger.error(Main.class.getName(),
-							"Error with user '" + user.getScreenName() + "' or email '" + user.getEmailAddress() + "'. ");
+					LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Error with user '" + user.getScreenName()
+							+ "' or email '" + user.getEmailAddress() + "'. ");
 					LiferayAutoconfiguratorLogger.errorMessage(Main.class.getName(), wsace);
 				}
 			}
@@ -296,12 +313,14 @@ public class Main {
 		return usersAdded;
 	}
 
-	private static Map<String, IGroup<Long>> storeOrganizations(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
-			IOException, AuthenticationRequired, WebServiceAccessError {
+	private static Map<String, IGroup<Long>> storeOrganizations(String connectionPassword)
+			throws ClientProtocolException, NotConnectedToWebServiceException, IOException, AuthenticationRequired,
+			WebServiceAccessError {
 		OrganizationService organizationService = new OrganizationService();
 		organizationService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		List<ExtendedOrganization> organizations = OrganizationFactory.getInstance().getElements();
-		LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Organizations to add '" + organizations.size() + "'.");
+		LiferayAutoconfiguratorLogger.debug(Main.class.getName(),
+				"Organizations to add '" + organizations.size() + "'.");
 		Map<String, IGroup<Long>> organizationsAdded = new HashMap<>();
 		try {
 			for (ExtendedOrganization organization : organizations) {
@@ -312,15 +331,18 @@ public class Main {
 						IGroup<Long> parent = organizationsAdded.get(organization.getParentOrganizationName());
 						if (parent != null) {
 							organization.setParentOrganizationId(parent.getUniqueId());
-							LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Parent organization of '" + organization.getUniqueName() + "' is '"
-									+ parent.getUniqueName() + "' with id '" + parent.getUniqueId() + "'.");
+							LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+									"Parent organization of '" + organization.getUniqueName() + "' is '"
+											+ parent.getUniqueName() + "' with id '" + parent.getUniqueId() + "'.");
 						}
 					}
 					IGroup<Long> organizationAdded = organizationService.addOrganization(company, organization);
-					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added organization '" + organizationAdded + "'.");
+					LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+							"Added organization '" + organizationAdded + "'.");
 					organizationsAdded.put(organization.getUniqueName(), organizationAdded);
 				} catch (DuplicatedLiferayElement dle) {
-					LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists an organization with name '" + organization + "'. ");
+					LiferayAutoconfiguratorLogger.warning(Main.class.getName(),
+							"Already exists an organization with name '" + organization + "'. ");
 					// get organization that already exists.
 					for (IGroup<Long> existingOrganization : organizationService.getOrganizations(company)) {
 						if (Objects.equals(existingOrganization.getUniqueName(), organization.getUniqueName())) {
@@ -335,7 +357,8 @@ public class Main {
 		return organizationsAdded;
 	}
 
-	private static void assignUsersToOrganizations(Map<String, IUser<Long>> users, Map<String, IGroup<Long>> organizations, String connectionPassword)
+	private static void assignUsersToOrganizations(Map<String, IUser<Long>> users,
+			Map<String, IGroup<Long>> organizations, String connectionPassword)
 			throws ClientProtocolException, IOException, NotConnectedToWebServiceException, AuthenticationRequired {
 		OrganizationService organizationService = new OrganizationService();
 		organizationService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
@@ -352,18 +375,20 @@ public class Main {
 						}
 					}
 				} else {
-					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Skipping role '" + usersRole + "'. User does not exists.");
+					LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+							"Skipping role '" + usersRole + "'. User does not exists.");
 				}
 			}
-			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Adding users '" + usersInOrganization + "' to organization '" + organization + "'.");
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+					"Adding users '" + usersInOrganization + "' to organization '" + organization + "'.");
 			organizationService.addUsersToOrganization(new ArrayList<>(usersInOrganization), organization);
 		}
 
 		organizationService.disconnect();
 	}
 
-	private static Map<String, IRole<Long>> storeRoles(String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException,
-			IOException, AuthenticationRequired, WebServiceAccessError {
+	private static Map<String, IRole<Long>> storeRoles(String connectionPassword) throws ClientProtocolException,
+			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
 		RoleService roleService = new RoleService();
 		roleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		List<ExtendedRole> roles = RoleFactory.getInstance().getElements();
@@ -377,7 +402,8 @@ public class Main {
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added role '" + roleAdded + "'.");
 					rolesAdded.put(roleAdded.getUniqueName(), roleAdded);
 				} catch (DuplicatedLiferayElement dle) {
-					LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Already exists the role '" + role + "'. ");
+					LiferayAutoconfiguratorLogger.warning(Main.class.getName(),
+							"Already exists the role '" + role + "'. ");
 					IRole<Long> existingRole;
 					try {
 						existingRole = roleService.getRole(role.getName(), company.getUniqueId());
@@ -386,7 +412,8 @@ public class Main {
 						}
 					} catch (RoleDoesNotExistsException e) {
 						// Do nothing.
-						LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Role '" + role.getName() + "' does not exists.");
+						LiferayAutoconfiguratorLogger.warning(Main.class.getName(),
+								"Role '" + role.getName() + "' does not exists.");
 					}
 				}
 			}
@@ -396,9 +423,9 @@ public class Main {
 		return rolesAdded;
 	}
 
-	private static void assignRolesToUsers(Map<String, IRole<Long>> roles, Map<String, IUser<Long>> users, Map<String, IGroup<Long>> organizations,
-			String connectionPassword) throws ClientProtocolException, NotConnectedToWebServiceException, IOException, AuthenticationRequired,
-			WebServiceAccessError {
+	private static void assignRolesToUsers(Map<String, IRole<Long>> roles, Map<String, IUser<Long>> users,
+			Map<String, IGroup<Long>> organizations, String connectionPassword) throws ClientProtocolException,
+			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
 		List<UserRole> usersRoles = UsersRolesFactory.getInstance().getElements();
 		RoleService roleService = new RoleService();
 		roleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
@@ -408,8 +435,8 @@ public class Main {
 					IUser<Long> user = users.get(userRole.getUser());
 					IRole<Long> role = roles.get(roleSelection.getRole());
 					if (user == null) {
-						LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid user '" + userRole.getUser() + "' for role selection '"
-								+ roleSelection + "' in '" + userRole + "'.");
+						LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid user '" + userRole.getUser()
+								+ "' for role selection '" + roleSelection + "' in '" + userRole + "'.");
 						continue;
 					}
 					if (role == null) {
@@ -418,21 +445,23 @@ public class Main {
 						try {
 							role = roleService.getRole(roleSelection.getRole(), company.getUniqueId());
 						} catch (RoleDoesNotExistsException wsa) {
-							LiferayAutoconfiguratorLogger.error(Main.class.getName(), "Invalid role for role selection '" + roleSelection + "' in '" + userRole
-									+ "'.");
+							LiferayAutoconfiguratorLogger.error(Main.class.getName(),
+									"Invalid role for role selection '" + roleSelection + "' in '" + userRole + "'.");
 							continue;
 						}
 					}
 					if (roleSelection.getOrganization() == null) {
 						// Generic role.
 						roleService.addRoleUser(user, role);
-						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added role '" + roleSelection + "' to user '" + users.get(userRole.getUser())
-								+ "'.");
+						LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+								"Added role '" + roleSelection + "' to user '" + users.get(userRole.getUser()) + "'.");
 					} else {
 						// Organization role.
-						roleService.addUserOrganizationRole(user, organizations.get(roleSelection.getOrganization()), role);
-						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added role '" + roleSelection + "' to user '" + users.get(userRole.getUser())
-								+ "' in '" + organizations.get(roleSelection.getOrganization()) + "'.");
+						roleService.addUserOrganizationRole(user, organizations.get(roleSelection.getOrganization()),
+								role);
+						LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+								"Added role '" + roleSelection + "' to user '" + users.get(userRole.getUser())
+										+ "' in '" + organizations.get(roleSelection.getOrganization()) + "'.");
 					}
 				}
 			}
@@ -441,8 +470,8 @@ public class Main {
 		}
 	}
 
-	private static Map<String, IFileEntry<Long>> uploadImages(String connectionPassword) throws ClientProtocolException, IOException,
-			NotConnectedToWebServiceException, AuthenticationRequired, WebServiceAccessError {
+	private static Map<String, IFileEntry<Long>> uploadImages(String connectionPassword) throws ClientProtocolException,
+			IOException, NotConnectedToWebServiceException, AuthenticationRequired, WebServiceAccessError {
 		Map<String, IFileEntry<Long>> imagesUploaded = new HashMap<>();
 		List<File> images = ImageFactory.getInstance().getElements();
 		// Upload images
@@ -455,7 +484,8 @@ public class Main {
 				try {
 					// String mimeType = "image/png";
 					String mimeType = new MimetypesFileTypeMap().getContentType(name);
-					fileService.addFile(site.getGroupId(), FOLDER_ID, name, mimeType, name, DEFAULT_IMAGE_DESCRIPTION, "", image);
+					fileService.addFile(site.getGroupId(), FOLDER_ID, name, mimeType, name, DEFAULT_IMAGE_DESCRIPTION,
+							"", image);
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Inserted image '" + name + "'.");
 				} catch (DuplicatedFileException dfe) {
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + name + "' already inserted.");
@@ -472,8 +502,9 @@ public class Main {
 		return imagesUploaded;
 	}
 
-	private static void setGuestPermissions(Set<IFileEntry<Long>> images, String connectionPassword) throws ClientProtocolException,
-			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
+	private static void setGuestPermissions(Set<IFileEntry<Long>> images, String connectionPassword)
+			throws ClientProtocolException, NotConnectedToWebServiceException, IOException, AuthenticationRequired,
+			WebServiceAccessError {
 		ResourcePermissionService resourcePermissionsService = new ResourcePermissionService();
 		resourcePermissionsService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 
@@ -488,17 +519,19 @@ public class Main {
 						Map<Long, ActionKey[]> roleIdsToActionIds = new HashMap<>();
 						roleIdsToActionIds.put(guestRole.getUniqueId(), allowedActions);
 
-						if (resourcePermissionsService.addResourcePermission(LIFERAY_DLFILEENTRY_CLASS, fileEntry.getUniqueId(), fileEntry.getGroupId(),
-								fileEntry.getCompanyId(), roleIdsToActionIds)) {
-							LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + fileEntry.getTitle() + "' permissions changed for role '"
-									+ guestRole + "'.");
+						if (resourcePermissionsService.addResourcePermission(LIFERAY_DLFILEENTRY_CLASS,
+								fileEntry.getUniqueId(), fileEntry.getGroupId(), fileEntry.getCompanyId(),
+								roleIdsToActionIds)) {
+							LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + fileEntry.getTitle()
+									+ "' permissions changed for role '" + guestRole + "'.");
 						} else {
 							LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Image '" + fileEntry.getTitle()
 									+ "' permissions NOT changed for role '" + guestRole + "'.");
 						}
 					} catch (RoleDoesNotExistsException e) {
 						// Do nothing.
-						LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Role '" + GUEST_ROLE + "' does not exists.");
+						LiferayAutoconfiguratorLogger.warning(Main.class.getName(),
+								"Role '" + GUEST_ROLE + "' does not exists.");
 					}
 				}
 			} finally {
@@ -509,97 +542,147 @@ public class Main {
 		}
 	}
 
-	private static Map<String, IArticle<Long>> storeArticles(String virtualHost, String connectionPassword, String liferayServerUrl,
-			Map<String, IFileEntry<Long>> existingImages) throws ClientProtocolException, NotConnectedToWebServiceException, IOException,
-			AuthenticationRequired, WebServiceAccessError {
+	private static Map<String, IArticle<Long>> storeArticles(String virtualHost, String connectionPassword,
+			String liferayServerUrl, Map<String, IFileEntry<Long>> existingImages) throws ClientProtocolException,
+			NotConnectedToWebServiceException, IOException, AuthenticationRequired, WebServiceAccessError {
 		// Get users from resources profile
 		ArticleService articleService = new ArticleService();
+		ArticleFolderService folderService = new ArticleFolderService();
+		ClassNameService classNameService = new ClassNameService();
+
 		articleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
-		List<KbArticle> articles = ArticleFactory.getInstance().getElements();
-		LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Articles to add '" + articles.size() + "'.");
+		Map<String, List<KbArticle>> articlesByFolder = ArticleFactory.getInstance().getFilesByFolder();
+		LiferayAutoconfiguratorLogger.debug(Main.class.getName(),
+				"Folders found '" + (articlesByFolder.size() - 1) + "'.");
+
+		IElement<Long> className = classNameService.getClassName(KbFolder.FOLDER_LIFERAY_CLASSNAME);
 
 		Map<String, IArticle<Long>> articlesAdded = new HashMap<>();
 		try {
 			// Getting already stored articles.
 			Set<IArticle<Long>> articlesStored = articleService.getArticles(site);
 
-			for (KbArticle articleToAdd : articles) {
-				articleToAdd.setCompanyId(company.getCompanyId());
-				// Force the recalculation of the parent resource class name by
-				// the webservice.
-				articleToAdd.setParentResourceClassNameId(null);
-				articleToAdd.setKbFolderId(0l);
-				articleToAdd.setParentResourcePrimKey(0l);
-
-				// URL title must start with a '/' and contain only alphanumeric
-				// characters, dashes, and underscores
-				if (!articleToAdd.getUrlTitle().startsWith("/")) {
-					articleToAdd.setUrlTitle("/" + articleToAdd.getUrlTitle());
+			for (Entry<String, List<KbArticle>> folderWithArticles : articlesByFolder.entrySet()) {
+				IFolder<Long> folder = null;
+				LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Articles found on folder '"
+						+ folderWithArticles.getKey() + "' are '" + folderWithArticles.getValue().size() + "'.");
+				if (folderWithArticles.getKey() != null) {
+					folder = folderService.addFolder(site.getGroupId(), 0l, null, folderWithArticles.getKey(),
+							folderWithArticles.getKey(), site);
+					LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+							"Added folder '" + folderWithArticles.getKey() + ".");
 				}
-				String content = articleToAdd.getContent();
-
-				// Replace image tags with image urls.
-				Matcher matcher = pattern.matcher(content);
-				while (matcher.find()) {
-					try {
-						String image = matcher.group().replaceAll("\\@", "");
-						if (existingImages.get(image) != null) {
-							// https://docker.biit-solutions.com/liferay/documents/20601/0/11_leg_lock.png/f580590c-ce69-430c-b9a2-dcf0e9831743
-							String imageUrl = liferayServerUrl + FileEntryService.getFileRelativeUrl(existingImages.get(image));
-							articleToAdd.setContent(articleToAdd.getContent().replaceAll("\\@\\@" + image + "\\@\\@", imageUrl));
-							LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image url '" + image + "' replaced by '" + imageUrl + "'.");
-						}
-					} catch (IndexOutOfBoundsException iob) {
-						LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Image url substitution failed for article '" + articleToAdd + "'.");
+				for (KbArticle articleToAdd : folderWithArticles.getValue()) {
+					articleToAdd.setCompanyId(company.getCompanyId());
+					// Force the recalculation of the parent resource class name by
+					// the webservice.
+					if (className != null) {
+						articleToAdd.setParentResourceClassNameId(className.getUniqueId());
+					} else {
+						articleToAdd.setParentResourceClassNameId(null);
 					}
-				}
+					articleToAdd.setKbFolderId(0l);
+					if (folder != null) {
+						articleToAdd.setParentResourcePrimKey(folder.getUniqueId());
+					} else {
+						articleToAdd.setParentResourcePrimKey(0l);
+					}
 
-				// Check already inserted article.
-				boolean existingArticle = false;
-				for (IArticle<Long> articleStored : articlesStored) {
-					// As title is the file name, in this case is unique.
-					if (Objects.equals(articleStored.getTitle(), articleToAdd.getTitle())) {
-						// Update article with new content.
-						articleStored.setDescription(articleToAdd.getDescription());
-						articleStored.setContent(articleToAdd.getContent());
-						if (articleStored instanceof KbArticle) {
-							((KbArticle) articleStored).setParentResourceClassNameId(null);
-							((KbArticle) articleStored).setCompanyId(company.getCompanyId());
-							// URL title must start with a '/' and contain only
-							// alphanumeric characters, dashes, and underscores
-							if (!((KbArticle) articleStored).getUrlTitle().startsWith("/")) {
-								((KbArticle) articleStored).setUrlTitle("/" + ((KbArticle) articleStored).getUrlTitle());
+					// URL title must start with a '/' and contain only alphanumeric
+					// characters, dashes, and underscores
+					if (!articleToAdd.getUrlTitle().startsWith("/")) {
+						articleToAdd.setUrlTitle("/" + articleToAdd.getUrlTitle());
+					}
+					String content = articleToAdd.getContent();
+
+					// Replace image tags with image urls.
+					Matcher matcher = pattern.matcher(content);
+					while (matcher.find()) {
+						try {
+							String image = matcher.group().replaceAll("\\@", "");
+							if (existingImages.get(image) != null) {
+								// https://docker.biit-solutions.com/liferay/documents/20601/0/11_leg_lock.png/f580590c-ce69-430c-b9a2-dcf0e9831743
+								String imageUrl = liferayServerUrl
+										+ FileEntryService.getFileRelativeUrl(existingImages.get(image));
+								articleToAdd.setContent(
+										articleToAdd.getContent().replaceAll("\\@\\@" + image + "\\@\\@", imageUrl));
+								LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+										"Image url '" + image + "' replaced by '" + imageUrl + "'.");
 							}
+						} catch (IndexOutOfBoundsException iob) {
+							LiferayAutoconfiguratorLogger.warning(Main.class.getName(),
+									"Image url substitution failed for article '" + articleToAdd + "'.");
 						}
-
-						IArticle<Long> articleAdded = articleService.editArticle(articleStored);
-						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Article '" + articleStored + "' updated.");
-						if (articleAdded instanceof KbArticle) {
-							articlesAdded.put(((KbArticle) articleAdded).getUrlTitle().replace("/", ""), articleAdded);
-						}
-						existingArticle = true;
-						break;
 					}
-				}
 
-				// Store new articles.
-				if (!existingArticle) {
-					try {
-						IArticle<Long> articleAdded = articleService.addArticle(articleToAdd, site.getName(), virtualHost);
-						LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added article '" + articleAdded + "'.");
-						articlesAdded.put(articleToAdd.getUrlTitle().replace("/", ""), articleAdded);
-					} catch (WebServiceAccessError wse) {
-						// Article already exists. Ignore.
+					// Check already inserted article.
+					boolean existingArticle = false;
+					for (IArticle<Long> articleStored : articlesStored) {
+						// As title is the file name, in this case is unique.
+						if (Objects.equals(articleStored.getTitle(), articleToAdd.getTitle())) {
+							// Update article with new content.
+							articleStored.setDescription(articleToAdd.getDescription());
+							articleStored.setContent(articleToAdd.getContent());
+							if (articleStored instanceof KbArticle) {
+								((KbArticle) articleStored).setParentResourceClassNameId(
+										((KbArticle) articleStored).getParentResourceClassNameId());
+								((KbArticle) articleStored).setParentResourcePrimKey(
+										((KbArticle) articleStored).getParentResourcePrimKey());
+								((KbArticle) articleStored).setCompanyId(company.getCompanyId());
+								// URL title must start with a '/' and contain only
+								// alphanumeric characters, dashes, and underscores
+								if (!((KbArticle) articleStored).getUrlTitle().startsWith("/")) {
+									((KbArticle) articleStored)
+											.setUrlTitle("/" + ((KbArticle) articleStored).getUrlTitle());
+								}
+							}
+
+							IArticle<Long> articleAdded = articleService.editArticle(articleStored);
+							if (folderWithArticles.getKey() != null) {
+								LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Article '" + articleStored
+										+ "' updated in folder '" + folderWithArticles.getKey() + "'.");
+							} else {
+								LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+										"Article '" + articleStored + "' updated.");
+							}
+							if (articleAdded instanceof KbArticle) {
+								articlesAdded.put(((KbArticle) articleAdded).getUrlTitle().replace("/", ""),
+										articleAdded);
+							}
+							existingArticle = true;
+							break;
+						}
+					}
+
+					// Store new articles.
+					if (!existingArticle) {
+						try {
+							IArticle<Long> articleAdded = articleService.addArticle(articleToAdd, site.getName(),
+									virtualHost);
+							if (folderWithArticles.getKey() != null) {
+								LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added article '"
+										+ articleAdded + "' to folder '" + folderWithArticles.getKey() + "'.");
+							} else {
+								LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+										"Added article '" + articleAdded + "'.");
+							}
+							articlesAdded.put(articleToAdd.getUrlTitle().replace("/", ""), articleAdded);
+						} catch (WebServiceAccessError wse) {
+							// Article already exists. Ignore.
+						}
 					}
 				}
 			}
 		} finally {
 			articleService.disconnect();
+			folderService.disconnect();
+			classNameService.disconnect();
 		}
 		return articlesAdded;
 	}
 
-	private static void setDroolsEngineArticleProperties(Map<String, IArticle<Long>> articles, String droolsArticleConfigPath) {
+	private static void setDroolsEngineArticleProperties(Map<String, IArticle<Long>> articles,
+			String droolsArticleConfigPath) {
 		Properties droolsArticleConfiguration = new SortedProperties();
 
 		// Get previous existing properties.
@@ -608,16 +691,19 @@ public class Main {
 			droolsArticleConfiguration.load(input);
 		} catch (IOException e1) {
 			// Old properties does not exists.
-			LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Old articles setting files not found. A new one will be generated!");
+			LiferayAutoconfiguratorLogger.warning(Main.class.getName(),
+					"Old articles setting files not found. A new one will be generated!");
 		}
 
 		// Override only the updated ones.
 		for (Entry<String, IArticle<Long>> articleEntry : articles.entrySet()) {
-			droolsArticleConfiguration.setProperty(articleEntry.getKey(), Long.toString(articleEntry.getValue().getResourcePrimKey()));
-			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Setting article id '" + articleEntry.getValue().getResourcePrimKey() + "' to article '"
-					+ articleEntry.getKey() + "'.");
+			droolsArticleConfiguration.setProperty(articleEntry.getKey(),
+					Long.toString(articleEntry.getValue().getResourcePrimKey()));
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Setting article id '"
+					+ articleEntry.getValue().getResourcePrimKey() + "' to article '" + articleEntry.getKey() + "'.");
 		}
-		try (FileOutputStream outputStream = new FileOutputStream(getDroolsEngineArticlePropertiesPath(droolsArticleConfigPath))) {
+		try (FileOutputStream outputStream = new FileOutputStream(
+				getDroolsEngineArticlePropertiesPath(droolsArticleConfigPath))) {
 			droolsArticleConfiguration.store(outputStream, null);
 		} catch (FileNotFoundException fne) {
 			LiferayAutoconfiguratorLogger.error(Main.class.getName(), fne.getMessage());
@@ -626,7 +712,8 @@ public class Main {
 		}
 	}
 
-	private static String getDroolsEngineArticlePropertiesPath(String droolsArticleConfigPath) throws FileNotFoundException {
+	private static String getDroolsEngineArticlePropertiesPath(String droolsArticleConfigPath)
+			throws FileNotFoundException {
 		return getPropertiesPath(droolsArticleConfigPath, DROOLS_ARTICLE_CONFIG_PATTERN);
 	}
 
@@ -634,57 +721,72 @@ public class Main {
 		Properties newRoleActivitiesConfiguration = new SortedProperties();
 		Properties oldRoleActivitiesConfiguration = new Properties();
 		try {
-			oldRoleActivitiesConfiguration.load(new FileInputStream(usmoConfigPath + File.separator + ROLE_ACTIVITIES_FILE));
+			oldRoleActivitiesConfiguration
+					.load(new FileInputStream(usmoConfigPath + File.separator + ROLE_ACTIVITIES_FILE));
 		} catch (IOException e) {
 			// No previous roles file found
-			LiferayAutoconfiguratorLogger.info(Main.class.getName(), "No previous role activities definitions found at '" + usmoConfigPath + File.separator
-					+ ROLE_ACTIVITIES_FILE + "'.");
+			LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+					"No previous role activities definitions found at '" + usmoConfigPath + File.separator
+							+ ROLE_ACTIVITIES_FILE + "'.");
 		}
 		for (IRole<Long> role : roles) {
 			ExtendedRole extendedRole = RoleFactory.getInstance().getElement(role);
 			if (extendedRole == null) {
-				LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Role '" + role + "' has no activities defined!");
+				LiferayAutoconfiguratorLogger.warning(Main.class.getName(),
+						"Role '" + role + "' has no activities defined!");
 				continue;
 			}
 			if (oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX) == null) {
 				if (extendedRole.getActivities() != null && !extendedRole.getActivities().isEmpty()) {
 					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,
-					// Convert array to string without brackets.
+							// Convert array to string without brackets.
 							extendedRole.getActivities().toString().replace("[", "").replace("]", ""));
 				}
 				if (extendedRole.getTranslation() != null && !extendedRole.getTranslation().isEmpty()) {
-					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX, extendedRole.getTranslation());
+					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX,
+							extendedRole.getTranslation());
 				}
 				if (extendedRole.getGroup() != null && !extendedRole.getGroup().isEmpty()) {
-					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + GROUP_SUFIX, extendedRole.getGroup());
+					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + GROUP_SUFIX,
+							extendedRole.getGroup());
 				}
 				if (extendedRole.getClassification() != null && !extendedRole.getClassification().isEmpty()) {
-					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX, extendedRole.getClassification());
+					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX,
+							extendedRole.getClassification());
 				}
-				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Added activities '" + extendedRole.getActivities() + "' to role '" + role + "'.");
+				LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+						"Added activities '" + extendedRole.getActivities() + "' to role '" + role + "'.");
 			} else {
 				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Activities for '" + extendedRole.getName()
 						+ "' already defined in a previous installation. Skipping.");
 				// Copy properties from old to new.
 				if (oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX) != null
-						&& !oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX).isEmpty()) {
+						&& !oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX)
+								.isEmpty()) {
 					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX,
-							oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX));
+							oldRoleActivitiesConfiguration
+									.getProperty(extendedRole.getName() + "." + PERMISSIONS_SUFIX));
 				}
 				if (oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX) != null
-						&& !oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX).isEmpty()) {
+						&& !oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX)
+								.isEmpty()) {
 					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX,
-							oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX));
+							oldRoleActivitiesConfiguration
+									.getProperty(extendedRole.getName() + "." + TRANSLATION_SUFIX));
 				}
 				if (oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + GROUP_SUFIX) != null
-						&& !oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + GROUP_SUFIX).isEmpty()) {
+						&& !oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + GROUP_SUFIX)
+								.isEmpty()) {
 					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + GROUP_SUFIX,
 							oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + GROUP_SUFIX));
 				}
-				if (oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX) != null
-						&& !oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX).isEmpty()) {
+				if (oldRoleActivitiesConfiguration
+						.getProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX) != null
+						&& !oldRoleActivitiesConfiguration
+								.getProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX).isEmpty()) {
 					newRoleActivitiesConfiguration.setProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX,
-							oldRoleActivitiesConfiguration.getProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX));
+							oldRoleActivitiesConfiguration
+									.getProperty(extendedRole.getName() + "." + CLASSIFICATION_SUFIX));
 				}
 			}
 		}
@@ -693,7 +795,8 @@ public class Main {
 			// Create file if it does not exists.
 			File yourFile = new File(usmoConfigPath + File.separator + ROLE_ACTIVITIES_FILE);
 			yourFile.createNewFile(); // if file already exists will do nothing
-			newRoleActivitiesConfiguration.store(new FileOutputStream(usmoConfigPath + File.separator + ROLE_ACTIVITIES_FILE), null);
+			newRoleActivitiesConfiguration
+					.store(new FileOutputStream(usmoConfigPath + File.separator + ROLE_ACTIVITIES_FILE), null);
 		} catch (FileNotFoundException fne) {
 			LiferayAutoconfiguratorLogger.error(Main.class.getName(), fne.getMessage());
 		} catch (IOException e) {
@@ -712,13 +815,15 @@ public class Main {
 
 		try {
 			for (File configFile : files) {
-				LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Found configuration file '" + configFile.getAbsolutePath() + "'.");
+				LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+						"Found configuration file '" + configFile.getAbsolutePath() + "'.");
 				return configFile.getAbsolutePath();
 			}
 		} catch (NullPointerException npe) {
 			// Do nothing, use next exception.
 		}
-		throw new FileNotFoundException("No file matches '" + path + (fileRegex.startsWith("/") ? "" : "/") + fileRegex + "'.");
+		throw new FileNotFoundException(
+				"No file matches '" + path + (fileRegex.startsWith("/") ? "" : "/") + fileRegex + "'.");
 	}
 
 	public static String readEnvironmentVariable(String environmentVariable, String defaultValue) {

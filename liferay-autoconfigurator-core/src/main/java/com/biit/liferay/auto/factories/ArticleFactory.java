@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.biit.liferay.auto.log.LiferayAutoconfiguratorLogger;
 import com.biit.liferay.model.KbArticle;
@@ -12,7 +14,7 @@ import com.biit.utils.file.FileReader;
 public class ArticleFactory extends JsonFactory<KbArticle> {
 	private final static String RESOURCE_FOLDER = "articles";
 	private static ArticleFactory instance;
-	private List<KbArticle> articles;
+	private Map<String, List<KbArticle>> filesByFolder;
 
 	private static void createInstance() {
 		if (instance == null) {
@@ -38,30 +40,43 @@ public class ArticleFactory extends JsonFactory<KbArticle> {
 
 	@Override
 	public List<KbArticle> getElements() {
-		if (articles == null) {
-			articles = getElements(getDefinitionsFolderPath());
+		if (filesByFolder == null) {
+			getElements(filesByFolder, null, getDefinitionsFolderPath());
 		}
-		return articles;
+
+		List<KbArticle> totalArticles = new ArrayList<>();
+		for (Entry<String, List<KbArticle>> entry : filesByFolder.entrySet()) {
+			totalArticles.addAll(entry.getValue());
+		}
+		return totalArticles;
 	}
 
-	private List<KbArticle> getElements(String path) {
+	private void getElements(Map<String, List<KbArticle>> filesByFolder, String folder, String path) {
 		List<File> definitions = getDefinitions(path);
-		List<KbArticle> articles = new ArrayList<>();
+		if (filesByFolder.get(folder) == null) {
+			filesByFolder.put(folder, new ArrayList<KbArticle>());
+		}
 		for (File file : definitions) {
 			if (file.isDirectory()) {
-				articles.addAll(getElements(file.getAbsolutePath()));
+				getElements(filesByFolder, file.getName(), file.getAbsolutePath());
 			} else {
 				try {
 					String fileContent = FileReader.readFile(file);
 					KbArticle article = decodeFromJson(fileContent, KbArticle.class);
-					articles.add(article);
+					filesByFolder.get(folder).add(article);
 				} catch (IOException e) {
-					LiferayAutoconfiguratorLogger.error(this.getClass().getName(), "Error decoding file '" + file
-							+ "'. Check if it is a json file and is correctly formed.");
+					LiferayAutoconfiguratorLogger.error(this.getClass().getName(),
+							"Error decoding file '" + file + "'. Check if it is a json file and is correctly formed.");
 					LiferayAutoconfiguratorLogger.errorMessage(this.getClass().getName(), e);
 				}
 			}
 		}
-		return articles;
+	}
+
+	public Map<String, List<KbArticle>> getFilesByFolder() {
+		if (filesByFolder == null) {
+			getElements(filesByFolder, null, getDefinitionsFolderPath());
+		}
+		return filesByFolder;
 	}
 }

@@ -656,7 +656,7 @@ public class Main {
 
 							// Move to folder
 							if (folderWithArticles.getKey() != null) {
-								articleService.moveArticle(articleAdded.getUniqueId(), folder.getUniqueId());
+								articleService.moveArticle(((KbArticle) articleAdded).getResourcePrimKey(), folder.getUniqueId());
 								LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Article '" + articleStored
 										+ "' moved to folder '" + folderWithArticles.getKey() + "'.");
 							}

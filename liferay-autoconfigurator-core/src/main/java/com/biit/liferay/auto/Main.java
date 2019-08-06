@@ -97,7 +97,7 @@ public class Main {
 	private static final long FOLDER_ID = 0l;
 
 	private static final Pattern pattern = Pattern.compile("\\@\\@.*?\\@\\@");
-	private static final String DROOLS_ARTICLE_CONFIG_PATTERN = "liferay-knowledge-base-[0-9\\\\.]+(-SNAPSHOT)?-jar-with-dependencies\\.conf";
+	private static final String DROOLS_ARTICLE_CONFIG_PATTERN = "liferay-article-plugin-jar-with-dependencies\\.conf";
 
 	private static final String USMO_CONFIG_ENV_VARIABLE = "USMO_CONFIGURATION_FOLDER";
 	private static final String DEFAULT_USMO_CONFIG_FOLDER = "/opt/configuration/usmo_config/";
@@ -708,8 +708,8 @@ public class Main {
 			droolsArticleConfiguration.load(input);
 		} catch (IOException e1) {
 			// Old properties does not exists.
-			LiferayAutoconfiguratorLogger.warning(Main.class.getName(),
-					"Old articles setting files not found. A new one will be generated!");
+			LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Old articles setting files not found at '"
+					+ droolsArticleConfigPath + "'. A new one will be generated!");
 		}
 
 		// Override only the updated ones.

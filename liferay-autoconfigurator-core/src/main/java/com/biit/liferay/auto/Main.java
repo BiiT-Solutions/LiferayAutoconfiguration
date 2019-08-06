@@ -637,9 +637,9 @@ public class Main {
 							articleStored.setContent(articleToAdd.getContent());
 							if (articleStored instanceof KbArticle) {
 								((KbArticle) articleStored).setParentResourceClassNameId(
-										((KbArticle) articleStored).getParentResourceClassNameId());
+										((KbArticle) articleToAdd).getParentResourceClassNameId());
 								((KbArticle) articleStored).setParentResourcePrimKey(
-										((KbArticle) articleStored).getParentResourcePrimKey());
+										((KbArticle) articleToAdd).getParentResourcePrimKey());
 								((KbArticle) articleStored).setCompanyId(company.getCompanyId());
 								// URL title must start with a '/' and contain only
 								// alphanumeric characters, dashes, and underscores

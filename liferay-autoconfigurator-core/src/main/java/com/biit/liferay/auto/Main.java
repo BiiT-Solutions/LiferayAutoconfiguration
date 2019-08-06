@@ -489,8 +489,9 @@ public class Main {
 				} catch (DuplicatedFileException dfe) {
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + name + "' already inserted.");
 				} catch (JsonParseException e) {
-					e.printStackTrace();
 					LiferayClientLogger.error(Main.class.getName(), "Image '" + name + "' not added!");
+				} catch (FileNotFoundException e) {
+					LiferayClientLogger.error(Main.class.getName(), "Image '" + name + "' not found!");
 				}
 			}
 			// Add existing images
@@ -657,7 +658,8 @@ public class Main {
 
 							// Move to folder
 							if (folderWithArticles.getKey() != null) {
-								articleService.moveArticle(((KbArticle) articleAdded).getResourcePrimKey(), folder.getUniqueId());
+								articleService.moveArticle(((KbArticle) articleAdded).getResourcePrimKey(),
+										folder.getUniqueId());
 								LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Article '" + articleStored
 										+ "' moved to folder '" + folderWithArticles.getKey() + "'.");
 							}

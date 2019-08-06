@@ -556,7 +556,7 @@ public class Main {
 		LiferayAutoconfiguratorLogger.debug(Main.class.getName(),
 				"Folders found '" + (articlesByFolder.size() - 1) + "'.");
 
-		IElement<Long> className = folderService.getFolderClassName();
+		IElement<Long> folderClassName = folderService.getFolderClassName();
 
 		Map<String, IArticle<Long>> articlesAdded = new HashMap<>();
 		try {
@@ -587,8 +587,8 @@ public class Main {
 					articleToAdd.setCompanyId(company.getCompanyId());
 					// Force the recalculation of the parent resource class name by
 					// the webservice.
-					if (className != null) {
-						articleToAdd.setParentResourceClassNameId(className.getUniqueId());
+					if (folderClassName != null) {
+						articleToAdd.setParentResourceClassNameId(folderClassName.getUniqueId());
 					} else {
 						articleToAdd.setParentResourceClassNameId(null);
 					}
@@ -636,10 +636,8 @@ public class Main {
 							articleStored.setDescription(articleToAdd.getDescription());
 							articleStored.setContent(articleToAdd.getContent());
 							if (articleStored instanceof KbArticle) {
-								((KbArticle) articleStored).setParentResourceClassNameId(
-										((KbArticle) articleToAdd).getParentResourceClassNameId());
-								((KbArticle) articleStored).setParentResourcePrimKey(
-										((KbArticle) articleToAdd).getParentResourcePrimKey());
+								((KbArticle) articleStored).setParentResourceClassNameId(folderClassName.getUniqueId());
+								((KbArticle) articleStored).setParentResourcePrimKey(folder.getUniqueId());
 								((KbArticle) articleStored).setCompanyId(company.getCompanyId());
 								// URL title must start with a '/' and contain only
 								// alphanumeric characters, dashes, and underscores
@@ -649,13 +647,16 @@ public class Main {
 								}
 							}
 
+							// Update content
 							IArticle<Long> articleAdded = articleService.editArticle(articleStored);
+							LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+									"Article '" + articleStored + "' updated.");
+
+							// Move to folder
 							if (folderWithArticles.getKey() != null) {
+								articleService.moveArticle(articleAdded.getUniqueId(), folder.getUniqueId());
 								LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Article '" + articleStored
-										+ "' updated in folder '" + folderWithArticles.getKey() + "'.");
-							} else {
-								LiferayAutoconfiguratorLogger.info(Main.class.getName(),
-										"Article '" + articleStored + "' updated.");
+										+ "' moved to folder '" + folderWithArticles.getKey() + "'.");
 							}
 							if (articleAdded instanceof KbArticle) {
 								articlesAdded.put(((KbArticle) articleAdded).getUrlTitle().replace("/", ""),
@@ -848,7 +849,8 @@ public class Main {
 
 	public static String getUrlString(String name) {
 		LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Calculating urlTitle for '" + name + "' as '"
-				+ name.replaceAll("([a-z])([A-Z]+)", "$1-$2").toLowerCase().replaceAll(" ", "-").replaceAll("--", "-") + "'.");
+				+ name.replaceAll("([a-z])([A-Z]+)", "$1-$2").toLowerCase().replaceAll(" ", "-").replaceAll("--", "-")
+				+ "'.");
 		return name.replaceAll("([a-z])([A-Z]+)", "$1-$2").toLowerCase().replaceAll(" ", "-").replaceAll("--", "-");
 	}
 }

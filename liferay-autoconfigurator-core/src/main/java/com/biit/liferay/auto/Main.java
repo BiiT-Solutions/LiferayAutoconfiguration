@@ -27,7 +27,6 @@ import org.apache.http.client.ClientProtocolException;
 
 import com.biit.liferay.access.ArticleFolderService;
 import com.biit.liferay.access.ArticleService;
-import com.biit.liferay.access.ClassNameService;
 import com.biit.liferay.access.CompanyService;
 import com.biit.liferay.access.FileEntryService;
 import com.biit.liferay.access.OrganizationService;
@@ -58,7 +57,6 @@ import com.biit.liferay.model.IArticle;
 import com.biit.liferay.model.IFileEntry;
 import com.biit.liferay.model.IFolder;
 import com.biit.liferay.model.KbArticle;
-import com.biit.liferay.model.KbFolder;
 import com.biit.usermanager.entity.IElement;
 import com.biit.usermanager.entity.IGroup;
 import com.biit.usermanager.entity.IRole;
@@ -551,15 +549,14 @@ public class Main {
 		// Get users from resources profile
 		ArticleService articleService = new ArticleService();
 		ArticleFolderService folderService = new ArticleFolderService();
-		ClassNameService classNameService = new ClassNameService();
-		classNameService.serverConnection();
 
 		articleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
+		folderService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		Map<String, List<KbArticle>> articlesByFolder = ArticleFactory.getInstance().getFilesByFolder();
 		LiferayAutoconfiguratorLogger.debug(Main.class.getName(),
 				"Folders found '" + (articlesByFolder.size() - 1) + "'.");
 
-		IElement<Long> className = classNameService.getClassName(KbFolder.FOLDER_LIFERAY_CLASSNAME);
+		IElement<Long> className = folderService.getFolderClassName();
 
 		Map<String, IArticle<Long>> articlesAdded = new HashMap<>();
 		try {
@@ -691,7 +688,6 @@ public class Main {
 		} finally {
 			articleService.disconnect();
 			folderService.disconnect();
-			classNameService.disconnect();
 		}
 		return articlesAdded;
 	}

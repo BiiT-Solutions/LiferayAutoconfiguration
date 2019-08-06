@@ -569,11 +569,21 @@ public class Main {
 				IFolder<Long> folder = null;
 				LiferayAutoconfiguratorLogger.debug(Main.class.getName(), "Articles found on folder '"
 						+ folderWithArticles.getKey() + "' are '" + folderWithArticles.getValue().size() + "'.");
+				// We need to search for a folder if defined.
 				if (folderWithArticles.getKey() != null) {
-					folder = folderService.addFolder(site.getGroupId(), 0l, null, folderWithArticles.getKey(),
-							folderWithArticles.getKey(), site);
-					LiferayAutoconfiguratorLogger.info(Main.class.getName(),
-							"Added folder '" + folderWithArticles.getKey() + ".");
+					// Check if folder already exists.
+					folder = folderService.getFolder(getUrlString(folderWithArticles.getKey()), site.getGroupId(), 0l);
+					if (folder == null) {
+						// If does not exists, create it.
+						folder = folderService.addFolder(site.getGroupId(), 0l, null, folderWithArticles.getKey(),
+								folderWithArticles.getKey(), site);
+						LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+								"Added folder '" + folderWithArticles.getKey() + ".");
+
+					} else {
+						LiferayAutoconfiguratorLogger.info(Main.class.getName(),
+								"Folder '" + folderWithArticles.getKey() + " already exists.");
+					}
 				}
 				for (KbArticle articleToAdd : folderWithArticles.getValue()) {
 					articleToAdd.setCompanyId(company.getCompanyId());
@@ -836,5 +846,11 @@ public class Main {
 			return defaultValue;
 		}
 		return value;
+	}
+
+	private static String getUrlString(String name) {
+		LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Calculating urlTitle for '" + name + "' as '"
+				+ name.replaceAll("(.)(\\p{Upper})", "$1-$2").toLowerCase() + "'.");
+		return name.replaceAll("(.)(\\p{Upper})", "$1-$2").toLowerCase();
 	}
 }

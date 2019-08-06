@@ -552,6 +552,7 @@ public class Main {
 		ArticleService articleService = new ArticleService();
 		ArticleFolderService folderService = new ArticleFolderService();
 		ClassNameService classNameService = new ClassNameService();
+		classNameService.serverConnection();
 
 		articleService.serverConnection(DEFAULT_LIFERAY_ADMIN_USER, connectionPassword);
 		Map<String, List<KbArticle>> articlesByFolder = ArticleFactory.getInstance().getFilesByFolder();

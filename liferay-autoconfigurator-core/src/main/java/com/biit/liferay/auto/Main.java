@@ -846,9 +846,9 @@ public class Main {
 		return value;
 	}
 
-	private static String getUrlString(String name) {
+	public static String getUrlString(String name) {
 		LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Calculating urlTitle for '" + name + "' as '"
-				+ name.replaceAll("(.)(\\p{Upper})", "$1-$2").toLowerCase().replaceAll(" ", "-").replaceAll("--", "-") + "'.");
-		return name.replaceAll("(.)(\\p{Upper})", "$1-$2").toLowerCase().replaceAll(" ", "-").replaceAll("--", "-");
+				+ name.replaceAll("([a-z])([A-Z]+)", "$1-$2").toLowerCase().replaceAll(" ", "-").replaceAll("--", "-") + "'.");
+		return name.replaceAll("([a-z])([A-Z]+)", "$1-$2").toLowerCase().replaceAll(" ", "-").replaceAll("--", "-");
 	}
 }

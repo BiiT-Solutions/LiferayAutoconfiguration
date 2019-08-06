@@ -598,6 +598,7 @@ public class Main {
 					if (folder != null) {
 						articleToAdd.setParentResourcePrimKey(folder.getUniqueId());
 					} else {
+						// Not in a folder.
 						articleToAdd.setParentResourcePrimKey(0l);
 					}
 
@@ -851,6 +852,6 @@ public class Main {
 	private static String getUrlString(String name) {
 		LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Calculating urlTitle for '" + name + "' as '"
 				+ name.replaceAll("(.)(\\p{Upper})", "$1-$2").toLowerCase() + "'.");
-		return name.replaceAll("(.)(\\p{Upper})", "$1-$2").toLowerCase();
+		return name.replaceAll("(.)(\\p{Upper})", "$1-$2").toLowerCase().replaceAll(" ", "-");
 	}
 }

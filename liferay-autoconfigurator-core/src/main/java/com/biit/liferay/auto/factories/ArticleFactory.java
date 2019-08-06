@@ -77,6 +77,7 @@ public class ArticleFactory extends JsonFactory<KbArticle> {
 
 	public Map<String, List<KbArticle>> getFilesByFolder() {
 		if (filesByFolder == null) {
+			filesByFolder = new HashMap<>();
 			getElements(filesByFolder, null, getDefinitionsFolderPath());
 		}
 		return filesByFolder;

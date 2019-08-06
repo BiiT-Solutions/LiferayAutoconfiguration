@@ -708,8 +708,9 @@ public class Main {
 			droolsArticleConfiguration.load(input);
 		} catch (IOException e1) {
 			// Old properties does not exists.
-			LiferayAutoconfiguratorLogger.warning(Main.class.getName(), "Old articles setting files not found at '"
-					+ droolsArticleConfigPath + "'. A new one will be generated!");
+			LiferayAutoconfiguratorLogger.warning(Main.class.getName(),
+					"Old articles setting file '" + DROOLS_ARTICLE_CONFIG_PATTERN + "' not found at folder '"
+							+ droolsArticleConfigPath + "'. A new one will be generated!");
 		}
 
 		// Override only the updated ones.

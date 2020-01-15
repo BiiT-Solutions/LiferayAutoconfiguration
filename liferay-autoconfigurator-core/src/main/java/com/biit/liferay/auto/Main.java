@@ -605,7 +605,7 @@ public class Main {
 					// URL title must start with a '/' and contain only alphanumeric
 					// characters, dashes, and underscores
 					String oldTitle = articleToAdd.getUrlTitle();
-					String updatedTitle = "/" + articleToAdd.getUrlTitle().toLowerCase().trim().replaceAll("[^A-Za-z0-9_\\-]", "");
+					String updatedTitle = "/" + articleToAdd.getUrlTitle().trim().replaceAll("[^A-Za-z0-9_\\-]", "");
 					if (!Objects.equals(oldTitle, updatedTitle)) {
 						articleToAdd.setUrlTitle(updatedTitle);
 						LiferayAutoconfiguratorLogger.warning(Main.class.getName(),

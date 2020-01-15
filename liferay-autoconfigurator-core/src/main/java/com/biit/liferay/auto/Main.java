@@ -578,11 +578,11 @@ public class Main {
 						folder = folderService.addFolder(site.getGroupId(), 0l, null, folderWithArticles.getKey(),
 								folderWithArticles.getKey(), site);
 						LiferayAutoconfiguratorLogger.info(Main.class.getName(),
-								"Added folder '" + folderWithArticles.getKey() + ".");
+								"Added folder '" + folderWithArticles.getKey() + "'.");
 
 					} else {
 						LiferayAutoconfiguratorLogger.info(Main.class.getName(),
-								"Folder '" + folderWithArticles.getKey() + " already exists.");
+								"Folder '" + folderWithArticles.getKey() + "' already exists.");
 					}
 				}
 				for (KbArticle articleToAdd : folderWithArticles.getValue()) {

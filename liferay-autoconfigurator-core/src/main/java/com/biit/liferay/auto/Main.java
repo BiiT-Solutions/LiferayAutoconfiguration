@@ -489,8 +489,10 @@ public class Main {
 				} catch (DuplicatedFileException dfe) {
 					LiferayAutoconfiguratorLogger.info(Main.class.getName(), "Image '" + name + "' already inserted.");
 				} catch (JsonParseException e) {
+					LiferayClientLogger.error(Main.class.getName(), e.getMessage());
 					LiferayClientLogger.error(Main.class.getName(), "Image '" + name + "' not added!");
 				} catch (FileNotFoundException e) {
+					LiferayClientLogger.error(Main.class.getName(), e.getMessage());
 					LiferayClientLogger.error(Main.class.getName(), "Image '" + name + "' not found!");
 				}
 			}

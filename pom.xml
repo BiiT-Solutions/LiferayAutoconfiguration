@@ -28,7 +28,7 @@
 
 	<scm>
 		<connection>scm:git:git.biit-solutions.com:BiiT/LiferayAutoconfigurator.git</connection>
-		<connection>scm:git:git.biit-solutions.com:BiiT/LiferayAutoconfigurator.git</developerConnection>
+		<developerConnection>scm:git:git.biit-solutions.com:BiiT/LiferayAutoconfigurator.git</developerConnection>
 		<tag>liferay-autoconfigurator</tag>
 	</scm>
 

@@ -40,7 +40,7 @@ jobs:
         with:
           args: >
             -Dsonar.organization=biit-solutions
-            "-Dsonar.projectName=BiiT Common Utils"
+            "-Dsonar.projectName=Liferay Autoconfigurator"
             -Dsonar.projectKey=BiiT-Solutions_BiiTCommonUtils
             -Dsonar.java.binaries=.
             -Dsonar.verbose=true

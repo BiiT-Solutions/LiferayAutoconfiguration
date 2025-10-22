@@ -6,6 +6,8 @@
     <name>Liferay Basic Configuration Creation (Core)</name>
     <description>Add default users, organizations, roles and articles to a newly installed Liferay (Core)</description>
     <url>https://github.com/BiiT-Solutions</url>
+    <groupId>com.biit-solutions.liferay</groupId>
+    <version>0.3.155-SNAPSHOT</version>
 
     <parent>
         <groupId>com.biit-solutions.liferay</groupId>

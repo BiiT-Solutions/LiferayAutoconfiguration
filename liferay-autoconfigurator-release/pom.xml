@@ -1,8 +1,12 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>liferay-autoconfigurator-release</artifactId>
+    <packaging>jar</packaging>
     <name>Liferay Basic Configuration Creation (Release)</name>
+    <description>Profile packer</description>
+    <url>https://github.com/BiiT-Solutions</url>
 
     <parent>
         <groupId>com.biit-solutions.liferay</groupId>
@@ -40,6 +44,13 @@
         </license>
     </licenses>
 
+    <scm>
+        <connection>scm:git:ssh://git@github.com/BiiT-Solutions/LiferayAutoconfiguration.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/BiiT-Solutions/LiferayAutoconfiguration.git</developerConnection>
+        <url>https://github.com/BiiT-Solutions/LiferayAutoconfiguration.git</url>
+        <tag>liferay-autoconfigurator</tag>
+    </scm>
+
     <dependencies>
         <!-- Core -->
         <dependency>
@@ -59,7 +70,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <jar.sufix />
+                <jar.sufix/>
                 <jar.version>1.0.0</jar.version>
                 <resource.folder>../liferay-autoconfigurator-core/src/main/resources/</resource.folder>
             </properties>
@@ -130,7 +141,8 @@
                         <id>addSufix</id>
                         <configuration>
                             <target>
-                                <copy file="target/${project.parent.artifactId}-${project.parent.version}-jar-with-dependencies.jar" tofile="../${project.parent.artifactId}${jar.sufix}-${jar.version}.jar" />
+                                <copy file="target/${project.parent.artifactId}-${project.parent.version}-jar-with-dependencies.jar"
+                                      tofile="../${project.parent.artifactId}${jar.sufix}-${jar.version}.jar"/>
                             </target>
                         </configuration>
                         <goals>
@@ -138,6 +150,13 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
         </plugins>
     </build>

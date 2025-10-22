@@ -2,10 +2,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>liferay-autoconfigurator-release</artifactId>
-    <packaging>jar</packaging>
     <name>Liferay Basic Configuration Creation (Release)</name>
-    <description>Profile packer</description>
-    <url>https://github.com/BiiT-Solutions</url>
 
     <parent>
         <groupId>com.biit-solutions.liferay</groupId>
@@ -14,7 +11,7 @@
     </parent>
 
     <properties>
-        <main.basedir>${project.basedir}/..</main.basedir>
+        <main.basedir>${basedir}/..</main.basedir>
         <mainClass>com.biit.liferay.auto.Main</mainClass>
     </properties>
 

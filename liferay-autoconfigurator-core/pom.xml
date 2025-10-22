@@ -2,10 +2,7 @@
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>liferay-autoconfigurator-core</artifactId>
-    <packaging>jar</packaging>
     <name>Liferay Basic Configuration Creation (Core)</name>
-    <description>Add default users, organizations, roles and articles to a newly installed Liferay (Core)</description>
-    <url>https://github.com/BiiT-Solutions</url>
 
     <parent>
         <groupId>com.biit-solutions.liferay</groupId>

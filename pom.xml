@@ -1,120 +1,121 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.biit-solutions.liferay</groupId>
-	<artifactId>liferay-autoconfigurator</artifactId>
-	<version>0.3.150-SNAPSHOT</version>
-	<packaging>pom</packaging>
-	<name>Liferay Basic Configuration Creation</name>
-	<description>Add default users, organizations, roles and articles to a newly installed Liferay</description>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.biit-solutions.liferay</groupId>
+    <artifactId>liferay-autoconfigurator</artifactId>
+    <version>0.3.150-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Liferay Basic Configuration Creation</name>
+    <description>Add default users, organizations, roles and articles to a newly installed Liferay</description>
 
-	<parent>
-		<groupId>com.biit-solutions</groupId>
-		<artifactId>versions</artifactId>
-		<version>[0.1,0.2)</version>
-		<relativePath /> <!-- lookup parent from repository -->
-	</parent>
+    <parent>
+        <groupId>com.biit-solutions</groupId>
+        <artifactId>versions</artifactId>
+        <version>[0.1,0.2)</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
 
-	<modules>
-		<module>liferay-autoconfigurator-core</module>
-		<module>liferay-autoconfigurator-release</module>
-	</modules>
+    <modules>
+        <module>liferay-autoconfigurator-core</module>
+        <module>liferay-autoconfigurator-release</module>
+    </modules>
 
-	<licenses>
-		<license>
-			<name>GNU AGPL v3</name>
-			<url>https://www.gnu.org/licenses/agpl-3.0.html</url>
-			<distribution>repo</distribution>
-		</license>
-	</licenses>
+    <licenses>
+        <license>
+            <name>GNU AGPL v3</name>
+            <url>https://www.gnu.org/licenses/agpl-3.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
-	<organization>
-		<name>BiiT Sourcing Solutions S.L.</name>
-		<url>https://www.biit-solutions.com/</url>
-	</organization>
+    <organization>
+        <name>BiiT Sourcing Solutions S.L.</name>
+        <url>https://www.biit-solutions.com/</url>
+    </organization>
 
-	<distributionManagement>
-		<repository>
-			<id>central</id>
-			<name>Maven Central</name>
-			<url>https://repo.maven.apache.org/maven2</url>
-		</repository>
-		<snapshotRepository>
-			<id>github</id>
-			<name>GitHub Packages</name>
-			<url>https://maven.pkg.github.com/BiiT-Solutions/LiferayAutoconfiguration</url>
-		</snapshotRepository>
-	</distributionManagement>
+    <distributionManagement>
+        <repository>
+            <id>central</id>
+            <name>Maven Central</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <snapshotRepository>
+            <id>github</id>
+            <name>GitHub Packages</name>
+            <url>https://maven.pkg.github.com/BiiT-Solutions/LiferayAutoconfiguration</url>
+        </snapshotRepository>
+    </distributionManagement>
 
-	<scm>
-		<connection>scm:git:ssh://git@github.com/BiiT-Solutions/LiferayAutoconfiguration.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com/BiiT-Solutions/LiferayAutoconfiguration.git</developerConnection>
-		<url>https://github.com/BiiT-Solutions/LiferayAutoconfiguration.git</url>
-		<tag>liferay-autoconfigurator</tag>
-	</scm>
+    <scm>
+        <connection>scm:git:ssh://git@github.com/BiiT-Solutions/LiferayAutoconfiguration.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/BiiT-Solutions/LiferayAutoconfiguration.git</developerConnection>
+        <url>https://github.com/BiiT-Solutions/LiferayAutoconfiguration.git</url>
+        <tag>liferay-autoconfigurator</tag>
+    </scm>
 
-	<properties>
-		<main.basedir>${project.basedir}</main.basedir>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<plugin.compiler.version>2.3.2</plugin.compiler.version>
-		<plugin.exec.version>1.2.1</plugin.exec.version>
-		<org.testng.version>6.8</org.testng.version>
-		<surefire.version>2.16</surefire.version>
-		<maven-resources-plugin.version>2.7</maven-resources-plugin.version>
-		<maven-release-plugin.version>2.5.1</maven-release-plugin.version>
-		<maven-scm-provider-gitexe.version>1.9.2</maven-scm-provider-gitexe.version>
-		<maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
-		<maven-assembly-plugin.version>2.5.3</maven-assembly-plugin.version>
-		<project.scm.id>git</project.scm.id>
-		<!-- BiiT dependencies -->
-		<liferay-authentication-client.version>[1.0,1.1)</liferay-authentication-client.version>
-		<liferay-knowledge-base.version>[1.0,1.1)</liferay-knowledge-base.version>
-	</properties>
+    <properties>
+        <main.basedir>${project.basedir}</main.basedir>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <plugin.compiler.version>2.3.2</plugin.compiler.version>
+        <plugin.exec.version>1.2.1</plugin.exec.version>
+        <org.testng.version>6.8</org.testng.version>
+        <surefire.version>2.16</surefire.version>
+        <maven-resources-plugin.version>2.7</maven-resources-plugin.version>
+        <maven-release-plugin.version>2.5.1</maven-release-plugin.version>
+        <maven-scm-provider-gitexe.version>1.9.2</maven-scm-provider-gitexe.version>
+        <maven-antrun-plugin.version>1.8</maven-antrun-plugin.version>
+        <maven-assembly-plugin.version>2.5.3</maven-assembly-plugin.version>
+        <project.scm.id>git</project.scm.id>
+        <!-- BiiT dependencies -->
+        <liferay-authentication-client.version>[1.0,1.1)</liferay-authentication-client.version>
+        <liferay-knowledge-base.version>[1.0,1.1)</liferay-knowledge-base.version>
+    </properties>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-release-plugin</artifactId>
-				<version>${maven-release-plugin.version}</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.apache.maven.scm</groupId>
-						<artifactId>maven-scm-provider-gitexe</artifactId>
-						<version>${maven-scm-provider-gitexe.version}</version>
-					</dependency>
-				</dependencies>
-				<configuration>
-					<checkModificationExcludes>
-						<checkModificationExclude>pom.xml</checkModificationExclude>
-					</checkModificationExcludes>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>license-maven-plugin</artifactId>
-				<version>${license-maven-plugin.version}</version>
-				<configuration>
-					<organizationName>BiiT Sourcing Solutions S.L.</organizationName>
-					<inceptionYear>2017</inceptionYear>
-					<licenseName>agpl_v3</licenseName>
-					<excludes>
-						<exclude>**/*.properties</exclude>
-						<exclude>**/*.xml</exclude>
-						<exclude>**/*.json</exclude>
-					</excludes>
-				</configuration>
-				<executions>
-					<execution>
-						<id>first</id>
-						<goals>
-							<goal>update-file-header</goal>
-						</goals>
-						<phase>package</phase>
-					</execution>
-				</executions>
-			</plugin>
-		</plugins>
-	</build>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <version>${maven-release-plugin.version}</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.scm</groupId>
+                        <artifactId>maven-scm-provider-gitexe</artifactId>
+                        <version>${maven-scm-provider-gitexe.version}</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <checkModificationExcludes>
+                        <checkModificationExclude>pom.xml</checkModificationExclude>
+                    </checkModificationExcludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>${license-maven-plugin.version}</version>
+                <configuration>
+                    <organizationName>BiiT Sourcing Solutions S.L.</organizationName>
+                    <inceptionYear>2017</inceptionYear>
+                    <licenseName>agpl_v3</licenseName>
+                    <excludes>
+                        <exclude>**/*.properties</exclude>
+                        <exclude>**/*.xml</exclude>
+                        <exclude>**/*.json</exclude>
+                    </excludes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>first</id>
+                        <goals>
+                            <goal>update-file-header</goal>
+                        </goals>
+                        <phase>package</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>

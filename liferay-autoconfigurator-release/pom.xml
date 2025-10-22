@@ -1,5 +1,4 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
     <artifactId>liferay-autoconfigurator-release</artifactId>
@@ -11,7 +10,7 @@
     <parent>
         <groupId>com.biit-solutions.liferay</groupId>
         <artifactId>liferay-autoconfigurator</artifactId>
-        <version>0.3.153-SNAPSHOT</version>
+        <version>0.3.153</version>
     </parent>
 
     <properties>
@@ -48,7 +47,7 @@
         <connection>scm:git:ssh://git@github.com/BiiT-Solutions/LiferayAutoconfiguration.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/BiiT-Solutions/LiferayAutoconfiguration.git</developerConnection>
         <url>https://github.com/BiiT-Solutions/LiferayAutoconfiguration.git</url>
-        <tag>liferay-autoconfigurator</tag>
+        <tag>liferay-autoconfigurator-0.3.153</tag>
     </scm>
 
     <dependencies>
@@ -56,7 +55,7 @@
         <dependency>
             <groupId>com.biit-solutions.liferay</groupId>
             <artifactId>liferay-autoconfigurator-core</artifactId>
-            <version>0.3.153-SNAPSHOT</version>
+            <version>0.3.153</version>
             <type>jar</type>
         </dependency>
     </dependencies>
@@ -70,7 +69,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <properties>
-                <jar.sufix/>
+                <jar.sufix />
                 <jar.version>1.0.0</jar.version>
                 <resource.folder>../liferay-autoconfigurator-core/src/main/resources/</resource.folder>
             </properties>
@@ -141,8 +140,7 @@
                         <id>addSufix</id>
                         <configuration>
                             <target>
-                                <copy file="target/${project.parent.artifactId}-${project.parent.version}-jar-with-dependencies.jar"
-                                      tofile="../${project.parent.artifactId}${jar.sufix}-${jar.version}.jar"/>
+                                <copy file="target/${project.parent.artifactId}-${project.parent.version}-jar-with-dependencies.jar" tofile="../${project.parent.artifactId}${jar.sufix}-${jar.version}.jar" />
                             </target>
                         </configuration>
                         <goals>

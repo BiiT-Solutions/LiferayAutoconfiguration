@@ -5,6 +5,7 @@
     <packaging>jar</packaging>
     <name>Liferay Basic Configuration Creation (Core)</name>
     <description>Add default users, organizations, roles and articles to a newly installed Liferay (Core)</description>
+    <url>https://github.com/BiiT-Solutions</url>
 
     <parent>
         <groupId>com.biit-solutions.liferay</groupId>
@@ -16,6 +17,18 @@
         <name>BiiT Sourcing Solutions S.L.</name>
         <url>https://www.biit-solutions.com/</url>
     </organization>
+
+    <developers>
+        <developer>
+            <id>jhortelano</id>
+            <name>Jorge Hortelano</name>
+            <email>jhortelano@biit-solutions.com</email>
+            <roles>
+                <role>Project-Administrator</role>
+                <role>Developer</role>
+            </roles>
+        </developer>
+    </developers>
 
     <licenses>
         <license>

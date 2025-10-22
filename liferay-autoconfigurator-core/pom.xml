@@ -7,12 +7,12 @@
     <description>Add default users, organizations, roles and articles to a newly installed Liferay (Core)</description>
     <url>https://github.com/BiiT-Solutions</url>
     <groupId>com.biit-solutions.liferay</groupId>
-    <version>0.3.155-SNAPSHOT</version>
+    <version>0.3.155</version>
 
     <parent>
         <groupId>com.biit-solutions.liferay</groupId>
         <artifactId>liferay-autoconfigurator</artifactId>
-        <version>0.3.155-SNAPSHOT</version>
+        <version>0.3.155</version>
     </parent>
 
     <organization>
@@ -44,7 +44,7 @@
         <connection>scm:git:ssh://git@github.com/BiiT-Solutions/LiferayAutoconfiguration.git</connection>
         <developerConnection>scm:git:ssh://git@github.com/BiiT-Solutions/LiferayAutoconfiguration.git</developerConnection>
         <url>https://github.com/BiiT-Solutions/LiferayAutoconfiguration.git</url>
-        <tag>liferay-autoconfigurator</tag>
+        <tag>liferay-autoconfigurator-0.3.155</tag>
     </scm>
 
     <properties>

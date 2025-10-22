@@ -6,10 +6,14 @@
 	<name>Liferay Basic Configuration Creation (Core)</name>
 
 	<parent>
-		<groupId>com.biit</groupId>
+		<groupId>com.biit-solutions.liferay</groupId>
 		<artifactId>liferay-autoconfigurator</artifactId>
 		<version>0.3.148-SNAPSHOT</version>
 	</parent>
+
+	<properties>
+		<main.basedir>${project.basedir}/..</main.basedir>
+	</properties>
 
 	<build>
 		<plugins>
@@ -18,8 +22,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>${plugin.compiler.version}</version>
 				<configuration>
-					<source>${java.jdk.version}</source>
-					<target>${java.jdk.version}</target>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
 				</configuration>
 			</plugin>
 			<plugin>

@@ -7,21 +7,22 @@
 	<description>Profile packer</description>
 
 	<parent>
-		<groupId>com.biit</groupId>
+		<groupId>com.biit-solutions.liferay</groupId>
 		<artifactId>liferay-autoconfigurator</artifactId>
 		<version>0.3.148-SNAPSHOT</version>
 	</parent>
 
 	<properties>
+		<main.basedir>${project.basedir}/..</main.basedir>
 		<mainClass>com.biit.liferay.auto.Main</mainClass>
 	</properties>
 
 	<dependencies>
 		<!-- Core -->
 		<dependency>
-			<groupId>com.biit</groupId>
+			<groupId>com.biit-solutions.liferay</groupId>
 			<artifactId>liferay-autoconfigurator-core</artifactId>
-			<version>${project.version}</version>
+			<version>0.3.148-SNAPSHOT</version>
 			<type>jar</type>
 		</dependency>
 	</dependencies>

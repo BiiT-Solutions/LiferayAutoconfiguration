@@ -4,12 +4,26 @@
 	<artifactId>liferay-autoconfigurator-core</artifactId>
 	<packaging>jar</packaging>
 	<name>Liferay Basic Configuration Creation (Core)</name>
+	<description>Add default users, organizations, roles and articles to a newly installed Liferay (Core)</description>
 
 	<parent>
 		<groupId>com.biit-solutions.liferay</groupId>
 		<artifactId>liferay-autoconfigurator</artifactId>
 		<version>0.3.149-SNAPSHOT</version>
 	</parent>
+
+	<organization>
+		<name>BiiT Sourcing Solutions S.L.</name>
+		<url>https://www.biit-solutions.com/</url>
+	</organization>
+
+	<licenses>
+		<license>
+			<name>GNU AGPL v3</name>
+			<url>https://www.gnu.org/licenses/agpl-3.0.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<properties>
 		<main.basedir>${project.basedir}/..</main.basedir>

@@ -17,6 +17,19 @@
 		<mainClass>com.biit.liferay.auto.Main</mainClass>
 	</properties>
 
+	<organization>
+		<name>BiiT Sourcing Solutions S.L.</name>
+		<url>https://www.biit-solutions.com/</url>
+	</organization>
+
+	<licenses>
+		<license>
+			<name>GNU AGPL v3</name>
+			<url>https://www.gnu.org/licenses/agpl-3.0.html</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
 	<dependencies>
 		<!-- Core -->
 		<dependency>
